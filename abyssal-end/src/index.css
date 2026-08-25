@@ -1,7 +1,5 @@
-/* Importa todo o Tailwind v4 */
 @import "tailwindcss";
 
-/* Aqui é onde ficava o antigo tailwind.config.js */
 @theme {
     /* Cores temáticas do Abyssal End */
     --color-ocean-surface: #0077be;
@@ -10,13 +8,26 @@
     --color-ocean-abyss: #00112b;
     --color-ocean-trench: #000000;
 
-    /* Você também pode adicionar fontes customizadas aqui, se quiser */
+    /* Fontes */
     --font-mono: "Fira Code", monospace;
 }
 
-/* Opcional: Estilos base para garantir que o fundo ocupe tudo */
-@layer base {
-    body {
-        @apply bg-ocean-surface text-white min-h-screen transition-colors duration-700;
-    }
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: linear-gradient(
+        to bottom,
+        var(--color-ocean-surface) 0%,
+        var(--color-ocean-twilight) 25%,
+        var(--color-ocean-midnight) 50%,
+        var(--color-ocean-abyss) 75%,
+        var(--color-ocean-trench) 100%
+    );
+    color: aliceblue;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
