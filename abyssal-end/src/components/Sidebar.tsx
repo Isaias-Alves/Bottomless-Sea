@@ -1,15 +1,33 @@
 import { useState, useEffect } from "react";
+import type { PerfilAcesso } from "./SonarSelector";
 
-const zonas = [
-  { id: "epipelagica", label: "Sobre Mim", depth: "0m" },
-  { id: "mesopelagica", label: "Stacks", depth: "200m" },
-  { id: "batipelagica", label: "Projetos", depth: "1000m" },
-  { id: "abissopelagica", label: "Experiência", depth: "4000m" },
-  { id: "hadal", label: "Contato", depth: "6000m+" },
+interface SidebarProps {
+  perfil: PerfilAcesso;
+}
+
+const zonasBase = [
+  { id: "epipelagica", depth: "0m" },
+  { id: "mesopelagica", depth: "200m" },
+  { id: "batipelagica", depth: "1000m" },
+  { id: "abissopelagica", depth: "4000m" },
+  { id: "hadal", depth: "6000m+" },
 ];
 
-export function Sidebar() {
+const ordemPerfis: Record<PerfilAcesso, string[]> = {
+  mergulhador: ["Sobre Mim", "Stacks", "Projetos", "Experiência", "Contato"],
+  sardinha: ["Sobre Mim", "Stacks", "Projetos", "Experiência", "Contato"],
+  tubarao: ["Sobre Mim", "Experiência", "Stacks", "Projetos", "Contato"],
+  baleia: ["Sobre Mim", "Experiência", "Projetos", "Stacks", "Contato"],
+};
+
+export function Sidebar({ perfil }: SidebarProps) {
   const [activeId, setActiveId] = useState("");
+
+  const zonas = zonasBase.map((zona, index) => ({
+    id: zona.id,
+    label: ordemPerfis[perfil][index],
+    depth: zona.depth,
+  }));
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,7 +47,7 @@ export function Sidebar() {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [perfil]);
 
   return (
     <nav className="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-10 items-end">
