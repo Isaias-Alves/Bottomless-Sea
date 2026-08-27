@@ -1,0 +1,68 @@
+.radarWrapper {
+    position: relative;
+    width: 90vw;
+    max-width: 500px;
+    aspect-ratio: 1 / 1;
+}
+
+/* O círculo principal do radar (A tela do sonar) */
+.radarContainer {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 119, 190, 0.4);
+    background: radial-gradient(
+        circle,
+        rgba(0, 42, 92, 0.8) 0%,
+        rgba(0, 17, 43, 0.9) 100%
+    );
+    overflow: hidden; /* Esconde apenas as grades e a luz giratória */
+    box-shadow: 0 0 60px rgba(0, 119, 190, 0.2);
+}
+
+.radarGrid {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-image:
+        radial-gradient(
+            circle,
+            transparent 24%,
+            rgba(0, 119, 190, 0.3) 25%,
+            transparent 26%
+        ),
+        radial-gradient(
+            circle,
+            transparent 49%,
+            rgba(0, 119, 190, 0.3) 50%,
+            transparent 51%
+        ),
+        radial-gradient(
+            circle,
+            transparent 74%,
+            rgba(0, 119, 190, 0.3) 75%,
+            transparent 76%
+        );
+}
+
+.radarSweep {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        transparent 70%,
+        rgba(0, 119, 190, 0.1) 90%,
+        rgba(0, 119, 190, 0.8) 100%
+    );
+    animation: scan 4s linear infinite;
+}
+
+@keyframes scan {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
