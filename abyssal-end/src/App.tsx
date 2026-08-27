@@ -89,45 +89,72 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil }) => (
 );
 
 const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-      <h3 className="mb-4 text-xl font-bold">Frontend</h3>
-      <div className="flex flex-wrap gap-2">
-        {["React", "TypeScript", "Tailwind CSS", "HTML", "JavaScript"].map(
-          (tech) => (
+  <div className="flex flex-col gap-8">
+    {/* Cards Padrão de Stacks */}
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
+        <h3 className="mb-4 text-xl font-bold">Frontend</h3>
+        <div className="flex flex-wrap gap-2">
+          {["React", "TypeScript", "Tailwind CSS", "HTML", "JavaScript"].map(
+            (tech) => (
+              <span
+                key={tech}
+                className="rounded border border-white/20 bg-white/5 px-3 py-1 text-sm transition-colors hover:bg-white/10"
+              >
+                {tech}
+              </span>
+            ),
+          )}
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
+        <h3 className="mb-4 text-xl font-bold">Backend & Ferramentas</h3>
+        <div className="flex flex-wrap gap-2">
+          {[
+            "Java",
+            "Python",
+            "SQL",
+            "Spring Boot",
+            "Linux",
+            "Prompt Engineering",
+          ].map((tech) => (
             <span
               key={tech}
-              className="rounded border border-white/20 bg-white/5 px-3 py-1 text-sm"
+              className="rounded border border-white/20 bg-white/5 px-3 py-1 text-sm transition-colors hover:bg-white/10"
             >
               {tech}
             </span>
-          ),
-        )}
+          ))}
+        </div>
       </div>
     </div>
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-      <h3 className="mb-4 text-xl font-bold">Backend & Ferramentas</h3>
-      <div className="flex flex-wrap gap-2">
+
+    {/* Renderização Condicional - Exclusivo Sardinha (Dev Indie / Parcerias) */}
+    {perfil === "sardinha" && (
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
-          "Java",
-          "Python",
-          "SQL",
-          "Spring Boot",
-          "Linux",
-          "Prompt Engineering",
-        ].map((tech) => (
-          <span
-            key={tech}
-            className="rounded border border-white/20 bg-white/5 px-3 py-1 text-sm"
+          { label: "Projetos Independentes", value: "5+" },
+          { label: "CTFs & Desafios", value: "15+" },
+          { label: "Commits no Ano", value: "400+" },
+          { label: "Tentativas de Centralizar a DIV", value: "8000+" },
+        ].map((stat, index) => (
+          <div
+            key={index}
+            className="flex flex-col items-center justify-center rounded-2xl border border-green-400/20 bg-green-400/5 p-4 text-center backdrop-blur-md transition-transform hover:scale-105"
           >
-            {tech}
-          </span>
+            <span className="text-3xl font-bold text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]">
+              {stat.value}
+            </span>
+            <span className="mt-2 text-xs font-semibold uppercase tracking-wider text-white/70">
+              {stat.label}
+            </span>
+          </div>
         ))}
       </div>
-    </div>
+    )}
   </div>
 );
-
 const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => (
   <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
     {[
