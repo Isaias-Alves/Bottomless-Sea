@@ -16,7 +16,11 @@ export function SonarSelector({ onSelectProfile }: SonarSelectorProps) {
           Sonar Ativo
         </h1>
         <p className="text-white/50 font-mono text-sm md:text-base">
-          Identifique sua assinatura biológica ou traje de mergulho.
+          Identifique sua assinatura biológica ou vista o seu traje de mergulho.
+        </p>
+
+        <p className="text-white/30 font-mono font-extralight text-sm md:text-base">
+          (Selecione o tipo de perfil de acesso)
         </p>
       </div>
 

@@ -130,6 +130,32 @@ const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     </div>
 
+    {/* Renderização Condicional - Exclusivo Baleia (Corporativo) */}
+    {perfil === "baleia" && (
+      <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6 backdrop-blur-md">
+        <h3 className="mb-4 text-xl font-bold text-purple-300">
+          Práticas de Engenharia & Metodologias
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {[
+            "Scrum / Kanban",
+            "Clean Code",
+            "Git",
+            "Revisão de Código (PRs)",
+            "UML & BPMN",
+            "Design Patterns",
+          ].map((tech) => (
+            <span
+              key={tech}
+              className="rounded border border-purple-500/40 bg-purple-500/10 px-3 py-1 text-sm text-purple-100"
+            >
+              {tech}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+
     {/* Renderização Condicional - Exclusivo Sardinha (Dev Indie / Parcerias) */}
     {perfil === "sardinha" && (
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -155,28 +181,48 @@ const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
     )}
   </div>
 );
-const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-    {[
-      "ClinPlaY (Web/Mobile)",
-      "El Banquero (Deadlocks)",
-      "Coriollis (Tradução PT-BR)",
-    ].map((proj) => (
-      <div
-        key={proj}
-        className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-transform hover:-translate-y-1"
-      >
-        <h3 className="text-xl font-bold">{proj}</h3>
-        <a
-          href="#"
-          className="mt-8 inline-block border-t border-white/10 pt-4 text-sm font-semibold hover:text-blue-300"
+
+const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => {
+  const archBadges: Record<string, string> = {
+    "ClinPlaY (Web/Mobile First PWA)": "Arquitetura Componentizada / API REST",
+    "El Banquero (Deadlocks)": "Algoritmos Otimizados / Concorrência",
+    "Coriollis (Tradução PT-BR)": "Gestão de Ativos / Versionamento",
+  };
+
+  return (
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+      {[
+        "ClinPlaY (Web/Mobile First PWA)",
+        "El Banquero (Deadlocks)",
+        "Coriollis (Tradução PT-BR)",
+      ].map((proj) => (
+        <div
+          key={proj}
+          className={`flex flex-col overflow-hidden rounded-2xl border p-6 backdrop-blur-md transition-transform hover:-translate-y-1 ${
+            perfil === "baleia"
+              ? "border-purple-500/30 bg-purple-500/5"
+              : "border-white/10 bg-white/5"
+          }`}
         >
-          Ver projeto →
-        </a>
-      </div>
-    ))}
-  </div>
-);
+          <h3 className="text-xl font-bold">{proj}</h3>
+
+          {perfil === "baleia" && archBadges[proj] && (
+            <div className="mt-4 inline-block w-fit rounded bg-purple-500/20 border border-purple-500/30 px-2 py-1 text-xs text-purple-300">
+              {archBadges[proj]}
+            </div>
+          )}
+
+          <a
+            href="#"
+            className="mt-auto inline-block border-t border-white/10 pt-4 text-sm font-semibold hover:text-blue-300"
+          >
+            Ver projeto →
+          </a>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
   <div>
@@ -192,6 +238,37 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
         </p>
       </div>
     </div>
+
+    {/* Renderização Condicional - Exclusivo Baleia (Corporativo) */}
+    {perfil === "baleia" && (
+      <div className="mt-12 rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
+        <h3 className="mb-6 text-xl font-bold text-purple-300">
+          Resumo de Atuação Corporativa
+        </h3>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div>
+            <p className="text-3xl font-bold text-white">4+</p>
+            <p className="mt-1 text-sm text-white/60">Pessoas na Equipe Base</p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-white">Escala</p>
+            <p className="mt-1 text-sm text-white/60">
+              Projetos para 100+ usuários
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-white">Agile</p>
+            <p className="mt-1 text-sm text-white/60">Colaboração & Entregas</p>
+          </div>
+        </div>
+        <p className="mt-6 text-sm text-white/70 leading-relaxed border-t border-purple-500/20 pt-6">
+          Experiência prática com desenvolvimento em times horizontais, tomada
+          de decisão sob pressão e gerenciamento de escopo e prazo em projetos
+          de software voltado para uso cotidiano. Conhecimentos ágeis e de
+          projetos arquiteturais de software.
+        </p>
+      </div>
+    )}
 
     {/* Renderização Condicional - Exclusivo Tubarão (Professor/Acadêmico) */}
     {perfil === "tubarao" && (
@@ -274,7 +351,7 @@ export default function App() {
   const ordemAtual = ordemPerfis[perfilAtivo];
 
   return (
-    <div className="relative w-full font-sans text-white">
+    <div className="relative w-full overflow-x-hidden font-sans text-white">
       <Sidebar perfil={perfilAtivo} />
 
       <main className="mx-auto max-w-5xl px-6 py-12 md:pr-40">
