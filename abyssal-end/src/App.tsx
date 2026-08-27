@@ -152,16 +152,61 @@ const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => (
 );
 
 const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="relative border-l border-white/20 pl-8">
-    <div className="mb-12 relative">
-      <div className="absolute -left-10.25 top-1 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss"></div>
-      <h3 className="text-xl font-bold">Scrum Master & Desenvolvedor Lead</h3>
-      <p className="text-white/50">ClinPlaY • 2026</p>
-      <p className="mt-4 text-white/80">
-        Liderança na arquitetura e codificação de sistema gamificado focado em
-        fisioterapia pélvica.
-      </p>
+  <div>
+    {/* Linha do Tempo Vertical - Experiência Padrão */}
+    <div className="relative border-l border-white/20 pl-8">
+      <div className="mb-12 relative">
+        <div className="absolute -left-10.25 top-0.1 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss"></div>
+        <h3 className="text-xl font-bold">Scrum Master & Desenvolvedor Lead</h3>
+        <p className="text-white/50">ClinPlaY • 2026</p>
+        <p className="mt-4 text-white/80">
+          Liderança na arquitetura e codificação de sistema gamificado focado em
+          fisioterapia pélvica.
+        </p>
+      </div>
     </div>
+
+    {/* Renderização Condicional - Exclusivo Tubarão (Professor/Acadêmico) */}
+    {perfil === "tubarao" && (
+      <div className="mt-24">
+        <h3 className="mb-10 text-2xl font-bold text-red-400">
+          Certificações Acadêmicas
+        </h3>
+
+        <div className="relative">
+          {/* Linha guia horizontal (Exibida apenas em telas md+) */}
+          <div className="absolute left-0 top-2.25 hidden w-full border-t border-white/20 md:block"></div>
+
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8">
+            {[
+              {
+                titulo: "Grupo de Iniciação Científica",
+                inst: "Escola Estadual Visconde do Rio das Velhas",
+                ano: "2024",
+              },
+              {
+                titulo: "Apadrinhamento de Calouros",
+                inst: "Puc Minas",
+                ano: "2025",
+              },
+            ].map((cert, index) => (
+              <div key={index} className="relative pl-8 md:pl-0 md:pt-8">
+                {/* Linha guia vertical (Exibida apenas em telas mobile) */}
+                <div className="absolute left-2.25 top-0 h-full border-l border-white/20 md:hidden"></div>
+
+                {/* Bolinha marcadora da linha do tempo */}
+                <div className="absolute left-0 top-0 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss md:left-0 md:-top-[1px]"></div>
+
+                <h4 className="text-lg font-bold">{cert.titulo}</h4>
+                <p className="text-sm text-white/50">
+                  {cert.inst} • {cert.ano}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
   </div>
 );
 
