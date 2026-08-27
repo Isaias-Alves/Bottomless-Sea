@@ -5,7 +5,6 @@
     aspect-ratio: 1 / 1;
 }
 
-/* O círculo principal do radar (A tela do sonar) */
 .radarContainer {
     position: absolute;
     inset: 0;
@@ -16,7 +15,7 @@
         rgba(0, 42, 92, 0.8) 0%,
         rgba(0, 17, 43, 0.9) 100%
     );
-    overflow: hidden; /* Esconde apenas as grades e a luz giratória */
+    overflow: hidden;
     box-shadow: 0 0 60px rgba(0, 119, 190, 0.2);
 }
 
@@ -65,4 +64,35 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+.tacticalBackground {
+    background-color: #010a15;
+    background-image:
+        radial-gradient(
+            circle at 50% 50%,
+            rgba(0, 119, 190, 0.1) 0%,
+            rgba(0, 0, 0, 0.95) 70%
+        ),
+        linear-gradient(rgba(0, 119, 190, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 119, 190, 0.05) 1px, transparent 1px);
+    background-size:
+        100% 100%,
+        40px 40px,
+        40px 40px;
+    background-position: center center;
+}
+
+.scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 20, 40, 0.3) 2px,
+        rgba(0, 20, 40, 0.3) 4px
+    );
+    pointer-events: none;
+    z-index: 40;
 }
