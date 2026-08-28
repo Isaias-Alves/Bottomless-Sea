@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { SonarSelector, type PerfilAcesso } from "./components/SonarSelector";
+import { AbyssalLantern } from "./components/AbyssalLantern";
 import { Sidebar } from "./components/Sidebar";
 
 export interface SecaoProps {
@@ -372,6 +373,7 @@ export default function App() {
   return (
     <div className="relative w-full overflow-x-hidden font-sans text-white">
       <BackgroundEffects />
+      <AbyssalLantern />
       <Sidebar perfil={perfilAtivo} />
 
       <main className="mx-auto max-w-5xl px-6 py-12 md:pr-40 relative z-20">
