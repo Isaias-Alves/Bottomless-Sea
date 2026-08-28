@@ -8,6 +8,7 @@ import { AbyssalSilhouettes } from "./components/AbyssalSilhouettes";
 
 export interface SecaoProps {
   perfil: PerfilAcesso;
+  onAtivarAnomalia?: () => void;
 }
 
 // Configurações de exibição e ordenação
@@ -67,60 +68,86 @@ const BackgroundEffects = () => {
 };
 
 // Componentes de conteúdo das seções
-const ConteudoSobre: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="flex flex-col items-center gap-10 md:flex-row md:items-start relative z-20">
-    <div className="flex flex-col items-center">
-      <div className="flex h-40 w-40 items-center justify-center rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-sm">
-        <span className="text-sm text-white/50">Avatar</span>
+const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
+  const [clickCount, setClickCount] = React.useState(0);
+
+  const handleAvatarClick = () => {
+    if (perfil === "mergulhador" && onAtivarAnomalia) {
+      const newCount = clickCount + 1;
+      setClickCount(newCount);
+
+      if (newCount === 3) {
+        onAtivarAnomalia();
+        setClickCount(0);
+      }
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-10 md:flex-row md:items-start relative z-20">
+      <div className="flex flex-col items-center">
+        <div
+          onClick={handleAvatarClick}
+          className={`flex h-40 w-40 items-center justify-center rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-sm transition-colors ${
+            perfil === "mergulhador"
+              ? "cursor-pointer hover:border-white/50 hover:bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+              : ""
+          }`}
+          title={
+            perfil === "mergulhador" ? "Anomalia abissal detectada..." : ""
+          }
+        >
+          <span className="text-sm text-white/50">Avatar</span>
+        </div>
+        <p className="mt-4 text-xl font-semibold">Isaías Alves</p>
       </div>
-      <p className="mt-4 text-xl font-semibold">Isaías Alves</p>
+
+      <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
+        <h3 className="text-2xl font-bold">
+          Desenvolvedor de Software Front-End
+        </h3>
+        <p className="mt-1 text-white/50">
+          19 anos • 4ºP Engenharia de Software (PUC Minas)
+        </p>
+        <p className="mt-6 leading-relaxed text-white/80">
+          Tenho foco na construção de sistemas eficientes e escaláveis. Trabalho
+          em projetos pessoais dos mais diversos tipos, desde aplicações web até
+          mesmo módulos para RPG de mesa.
+        </p>
+
+        {perfil === "tubarao" && (
+          <div className="mt-6 border-t border-white/10 pt-6">
+            <h4 className="text-lg font-bold text-red-400 mb-3">
+              Foco Acadêmico & Soft Skills
+            </h4>
+            <ul className="list-disc list-inside text-sm text-white/70 space-y-1">
+              <li>Interesse ativo em Iniciação Científica e Pesquisa.</li>
+              <li>Comunicação assertiva e adaptável ao público.</li>
+              <li>
+                Experiência em grupos de iniciação científica no Ensino Médio.
+              </li>
+              <li>Inglês Avançado (Leitura e Escrita técnica fluentes).</li>
+            </ul>
+          </div>
+        )}
+
+        {perfil === "baleia" && (
+          <div className="mt-6 flex gap-3">
+            <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
+              Disponível para Estágio
+            </span>
+            <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
+              Trabalho em Equipe
+            </span>
+            <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
+              Pensamento Analítico
+            </span>
+          </div>
+        )}
+      </div>
     </div>
-
-    <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
-      <h3 className="text-2xl font-bold">
-        Desenvolvedor de Software Front-End
-      </h3>
-      <p className="mt-1 text-white/50">
-        19 anos • 4ºP Engenharia de Software (PUC Minas)
-      </p>
-      <p className="mt-6 leading-relaxed text-white/80">
-        Tenho foco na construção de sistemas eficientes e escaláveis. Trabalho
-        em projetos pessoais dos mais diversos tipos, desde aplicações web até
-        mesmo módulos para RPG de mesa.
-      </p>
-
-      {perfil === "tubarao" && (
-        <div className="mt-6 border-t border-white/10 pt-6">
-          <h4 className="text-lg font-bold text-red-400 mb-3">
-            Foco Acadêmico & Soft Skills
-          </h4>
-          <ul className="list-disc list-inside text-sm text-white/70 space-y-1">
-            <li>Interesse ativo em Iniciação Científica e Pesquisa.</li>
-            <li>Comunicação assertiva e adaptável ao público.</li>
-            <li>
-              Experiência em grupos de iniciação científica no Ensino Médio.
-            </li>
-            <li>Inglês Avançado (Leitura e Escrita técnica fluentes).</li>
-          </ul>
-        </div>
-      )}
-
-      {perfil === "baleia" && (
-        <div className="mt-6 flex gap-3">
-          <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-            Disponível para Estágio
-          </span>
-          <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-            Trabalho em Equipe
-          </span>
-          <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-            Pensamento Analítico
-          </span>
-        </div>
-      )}
-    </div>
-  </div>
-);
+  );
+};
 
 const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
   <div className="flex flex-col gap-8 relative z-20">
@@ -366,6 +393,7 @@ const COMPONENTES_SECAO: Record<
 
 export default function App() {
   const [perfilAtivo, setPerfilAtivo] = useState<PerfilAcesso | null>(null);
+  const [anomaliaAtiva, setAnomaliaAtiva] = useState(false);
 
   if (!perfilAtivo) {
     return <SonarSelector onSelectProfile={setPerfilAtivo} />;
@@ -375,13 +403,37 @@ export default function App() {
 
   return (
     <div className="relative w-full overflow-x-hidden font-sans text-white">
+      {/* Camada de Fundo Dinâmica */}
+      {anomaliaAtiva ? (
+        <video
+          autoPlay
+          controls={false}
+          className="fixed inset-0 w-full h-full object-cover z-0 opacity-80"
+          style={{ mixBlendMode: "multiply" }}
+          src="/bad-apple.mp4"
+          onEnded={() => setAnomaliaAtiva(false)}
+        />
+      ) : (
+        <AbyssalSilhouettes />
+      )}
+
       <BackgroundEffects />
       <AbyssalLantern />
       <DepthHUD />
-      <AbyssalSilhouettes />
       <Sidebar perfil={perfilAtivo} />
 
-      <main className="mx-auto max-w-6xl px-6 py-12 md:pl-48 md:pr-40 relative z-20">
+      <main
+        className={`mx-auto max-w-6xl px-6 py-12 md:pl-48 md:pr-40 relative z-20 transition-all duration-1000 ${anomaliaAtiva ? "bg-transparent drop-shadow-2xl" : ""}`}
+      >
+        {anomaliaAtiva && (
+          <button
+            onClick={() => setAnomaliaAtiva(false)}
+            className="fixed top-8 right-8 z-50 rounded bg-red-900/50 px-4 py-2 font-mono text-xs text-red-300 hover:bg-red-900"
+          >
+            [ PURGAR ANOMALIA ]
+          </button>
+        )}
+
         <header className="mb-32 mt-12 border-b border-white/20 pb-8 relative z-20">
           <p className="mb-2 text-sm uppercase tracking-widest text-white/50">
             Acesso Autorizado:{" "}
@@ -394,7 +446,10 @@ export default function App() {
             </h1>
 
             <button
-              onClick={() => setPerfilAtivo(null)}
+              onClick={() => {
+                setPerfilAtivo(null);
+                setAnomaliaAtiva(false);
+              }}
               className="rounded-lg border border-ocean-surface/50 bg-ocean-surface/10 px-5 py-2.5 font-mono text-sm text-ocean-surface backdrop-blur-md transition-all hover:border-ocean-surface hover:bg-ocean-surface/20 hover:text-white hover:shadow-[0_0_15px_rgba(0,119,190,0.4)]"
             >
               [ Resetar Sonar ]
@@ -408,16 +463,15 @@ export default function App() {
           const metadadosZona = ZONAS_OCEANO[index];
           const idFixoMaritimo = IDs_MARITIMOS[index];
 
-          // Calcula um delay progressivo baseado no índice para criar um efeito em cascata
           const cascadeDelay = 500 + index * 200;
 
           return (
             <section
               id={idFixoMaritimo}
               key={idFixoMaritimo}
-              className="min-h-[80vh] pt-20"
+              className={`min-h-[80vh] pt-20 transition-opacity duration-1000 ${anomaliaAtiva ? "opacity-80" : "opacity-100"}`}
             >
-              <div className="mb-8 inline-block rounded-full bg-white/10 px-4 py-1 text-sm font-mono tracking-wide uppercase">
+              <div className="mb-8 inline-block rounded-full bg-white/10 px-4 py-1 text-sm font-mono tracking-wide uppercase backdrop-blur-sm">
                 <DecryptedText
                   text={`ZONA ${idFixoMaritimo} / ${metadadosZona.prof}`}
                   delay={cascadeDelay}
@@ -432,7 +486,10 @@ export default function App() {
                 />
               </h2>
 
-              <SecaoComponente perfil={perfilAtivo} />
+              <SecaoComponente
+                perfil={perfilAtivo}
+                onAtivarAnomalia={() => setAnomaliaAtiva(true)}
+              />
             </section>
           );
         })}
