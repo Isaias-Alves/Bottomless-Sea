@@ -30,9 +30,41 @@ const IDs_MARITIMOS = [
   "hadal",
 ];
 
+// Efeitos de Fundo (Bolhas e Luz)
+const BackgroundEffects = () => {
+  const bubbles = [
+    { size: 24, left: 10, duration: 18, delay: 0 },
+    { size: 16, left: 25, duration: 22, delay: 5 },
+    { size: 32, left: 45, duration: 15, delay: 2 },
+    { size: 12, left: 65, duration: 25, delay: 8 },
+    { size: 28, left: 85, duration: 20, delay: 12 },
+    { size: 18, left: 75, duration: 19, delay: 18 },
+    { size: 10, left: 35, duration: 24, delay: 15 },
+  ];
+
+  return (
+    <>
+      <div className="sunlight-glow"></div>
+      {bubbles.map((b, i) => (
+        <div
+          key={i}
+          className="bubble"
+          style={{
+            width: `${b.size}px`,
+            height: `${b.size}px`,
+            left: `${b.left}%`,
+            animationDuration: `${b.duration}s`,
+            animationDelay: `${b.delay}s`,
+          }}
+        ></div>
+      ))}
+    </>
+  );
+};
+
 // Componentes de conteúdo das seções
 const ConteudoSobre: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="flex flex-col items-center gap-10 md:flex-row md:items-start">
+  <div className="flex flex-col items-center gap-10 md:flex-row md:items-start relative z-20">
     <div className="flex flex-col items-center">
       <div className="flex h-40 w-40 items-center justify-center rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-sm">
         <span className="text-sm text-white/50">Avatar</span>
@@ -53,7 +85,6 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil }) => (
         mesmo módulos para RPG de mesa.
       </p>
 
-      {/* Exclusivo para o perfil Acadêmico */}
       {perfil === "tubarao" && (
         <div className="mt-6 border-t border-white/10 pt-6">
           <h4 className="text-lg font-bold text-red-400 mb-3">
@@ -70,7 +101,6 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil }) => (
         </div>
       )}
 
-      {/* Exclusivo para o perfil Corporativo */}
       {perfil === "baleia" && (
         <div className="mt-6 flex gap-3">
           <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
@@ -89,8 +119,7 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil }) => (
 );
 
 const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="flex flex-col gap-8">
-    {/* Cards Padrão de Stacks */}
+  <div className="flex flex-col gap-8 relative z-20">
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
         <h3 className="mb-4 text-xl font-bold">Frontend</h3>
@@ -130,7 +159,6 @@ const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     </div>
 
-    {/* Renderização Condicional - Exclusivo Baleia (Corporativo) */}
     {perfil === "baleia" && (
       <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6 backdrop-blur-md">
         <h3 className="mb-4 text-xl font-bold text-purple-300">
@@ -156,7 +184,6 @@ const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     )}
 
-    {/* Renderização Condicional - Exclusivo Sardinha (Dev Indie / Parcerias) */}
     {perfil === "sardinha" && (
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
@@ -190,7 +217,7 @@ const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-3 relative z-20">
       {[
         "ClinPlaY (Web/Mobile First PWA)",
         "El Banquero (Deadlocks)",
@@ -225,8 +252,7 @@ const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => {
 };
 
 const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
-  <div>
-    {/* Linha do Tempo Vertical - Experiência Padrão */}
+  <div className="relative z-20">
     <div className="relative border-l border-white/20 pl-8">
       <div className="mb-12 relative">
         <div className="absolute -left-10.25 top-0.1 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss"></div>
@@ -239,7 +265,6 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     </div>
 
-    {/* Renderização Condicional - Exclusivo Baleia (Corporativo) */}
     {perfil === "baleia" && (
       <div className="mt-12 rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
         <h3 className="mb-6 text-xl font-bold text-purple-300">
@@ -270,7 +295,6 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     )}
 
-    {/* Renderização Condicional - Exclusivo Tubarão (Professor/Acadêmico) */}
     {perfil === "tubarao" && (
       <div className="mt-24">
         <h3 className="mb-10 text-2xl font-bold text-red-400">
@@ -278,7 +302,6 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
         </h3>
 
         <div className="relative">
-          {/* Linha guia horizontal (Exibida apenas em telas md+) */}
           <div className="absolute left-0 top-2.25 hidden w-full border-t border-white/20 md:block"></div>
 
           <div className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8">
@@ -295,12 +318,8 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
               },
             ].map((cert, index) => (
               <div key={index} className="relative pl-8 md:pl-0 md:pt-8">
-                {/* Linha guia vertical (Exibida apenas em telas mobile) */}
                 <div className="absolute left-2.25 top-0 h-full border-l border-white/20 md:hidden"></div>
-
-                {/* Bolinha marcadora da linha do tempo */}
                 <div className="absolute left-0 top-0 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss md:left-0 md:-top-[1px]"></div>
-
                 <h4 className="text-lg font-bold">{cert.titulo}</h4>
                 <p className="text-sm text-white/50">
                   {cert.inst} • {cert.ano}
@@ -315,7 +334,7 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
 );
 
 const ConteudoContato: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="w-full text-center rounded-3xl border border-white/10 bg-white/5 p-12 backdrop-blur-xl">
+  <div className="w-full text-center rounded-3xl border border-white/10 bg-white/5 p-12 backdrop-blur-xl relative z-20">
     <h2 className="mb-4 text-3xl font-bold">Chegamos ao fundo.</h2>
     <a
       href="mailto:isaiasalvesdesouzasantos@gmail.com"
@@ -352,21 +371,27 @@ export default function App() {
 
   return (
     <div className="relative w-full overflow-x-hidden font-sans text-white">
+      <BackgroundEffects />
       <Sidebar perfil={perfilAtivo} />
 
-      <main className="mx-auto max-w-5xl px-6 py-12 md:pr-40">
-        <header className="mb-32 mt-12 border-b border-white/20 pb-8">
+      <main className="mx-auto max-w-5xl px-6 py-12 md:pr-40 relative z-20">
+        <header className="mb-32 mt-12 border-b border-white/20 pb-8 relative z-20">
           <p className="mb-2 text-sm uppercase tracking-widest text-white/50">
             Acesso Autorizado: {perfilAtivo.toUpperCase()}
           </p>
-          <h1 className="text-4xl font-bold md:text-6xl">Abyssal End</h1>
 
-          <button
-            onClick={() => setPerfilAtivo(null)}
-            className="mt-6 text-sm font-mono text-ocean-surface hover:text-white transition-colors"
-          >
-            [ Resetar Sonar ]
-          </button>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mt-2">
+            <h1 className="text-4xl font-bold md:text-6xl drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+              Abyssal End
+            </h1>
+
+            <button
+              onClick={() => setPerfilAtivo(null)}
+              className="rounded-lg border border-ocean-surface/50 bg-ocean-surface/10 px-5 py-2.5 font-mono text-sm text-amber-50 backdrop-blur-md transition-all hover:border-ocean-surface hover:bg-ocean-surface/20 hover:text-white hover:shadow-[0_0_15px_rgba(0,119,190,0.4)]"
+            >
+              [ Resetar Sonar ]
+            </button>
+          </div>
         </header>
 
         {ordemAtual.map((chaveSecao, index) => {

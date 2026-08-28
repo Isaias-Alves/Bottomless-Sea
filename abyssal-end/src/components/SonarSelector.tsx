@@ -20,7 +20,7 @@ export function SonarSelector({ onSelectProfile }: SonarSelectorProps) {
           Sonar Ativo
         </h1>
         <p className="text-white/50 font-mono text-sm md:text-base">
-          Identifique sua assinatura biológica ou traje de mergulho.
+          Identifique sua assinatura biológica ou experimente um mergulho livre.
         </p>
       </div>
 
