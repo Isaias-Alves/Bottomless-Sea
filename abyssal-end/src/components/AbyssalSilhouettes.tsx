@@ -1,5 +1,3 @@
-import React from "react";
-
 export function AbyssalSilhouettes() {
   return (
     <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden z-0">

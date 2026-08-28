@@ -27,8 +27,8 @@ export function SonarSelector({ onSelectProfile }: SonarSelectorProps) {
       <div className={styles.radarWrapper}>
         <div className={styles.radarContainer}>
           <div className={styles.radarGrid}></div>
-          <div className="absolute top-1/2 left-0 h-[1px] w-full bg-ocean-surface/30 -translate-y-1/2"></div>
-          <div className="absolute top-0 left-1/2 h-full w-[1px] bg-ocean-surface/30 -translate-x-1/2"></div>
+          <div className="absolute top-1/2 left-0 h-px w-full bg-ocean-surface/30 -translate-y-1/2"></div>
+          <div className="absolute top-0 left-1/2 h-full w-px bg-ocean-surface/30 -translate-x-1/2"></div>
           <div className={styles.radarSweep}></div>
         </div>
 

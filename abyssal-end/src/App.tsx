@@ -350,7 +350,7 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
             ].map((cert, index) => (
               <div key={index} className="relative pl-8 md:pl-0 md:pt-8">
                 <div className="absolute left-2.25 top-0 h-full border-l border-white/20 md:hidden"></div>
-                <div className="absolute left-0 top-0 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss md:left-0 md:-top-[1px]"></div>
+                <div className="absolute left-0 top-0 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss md:left-0 md:-top-px"></div>
                 <h4 className="text-lg font-bold">{cert.titulo}</h4>
                 <p className="text-sm text-white/50">
                   {cert.inst} • {cert.ano}
@@ -364,7 +364,7 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
   </div>
 );
 
-const ConteudoContato: React.FC<SecaoProps> = ({ perfil }) => (
+const ConteudoContato: React.FC<SecaoProps> = () => (
   <div className="w-full text-center rounded-3xl border border-white/10 bg-white/5 p-12 backdrop-blur-xl relative z-20">
     <h2 className="mb-4 text-3xl font-bold">Chegamos ao fundo.</h2>
     <a
