@@ -4,6 +4,7 @@ import { AbyssalLantern } from "./components/AbyssalLantern";
 import { Sidebar } from "./components/Sidebar";
 import { DepthHUD } from "./components/DepthHUD";
 import { DecryptedText } from "./components/DecryptedText";
+import { AbyssalSilhouettes } from "./components/AbyssalSilhouettes";
 
 export interface SecaoProps {
   perfil: PerfilAcesso;
@@ -377,6 +378,7 @@ export default function App() {
       <BackgroundEffects />
       <AbyssalLantern />
       <DepthHUD />
+      <AbyssalSilhouettes />
       <Sidebar perfil={perfilAtivo} />
 
       <main className="mx-auto max-w-6xl px-6 py-12 md:pl-48 md:pr-40 relative z-20">
