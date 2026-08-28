@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { SonarSelector, type PerfilAcesso } from "./components/SonarSelector";
 import { AbyssalLantern } from "./components/AbyssalLantern";
 import { Sidebar } from "./components/Sidebar";
+import { DepthHUD } from "./components/DepthHUD";
+import { DecryptedText } from "./components/DecryptedText";
 
 export interface SecaoProps {
   perfil: PerfilAcesso;
@@ -374,22 +376,24 @@ export default function App() {
     <div className="relative w-full overflow-x-hidden font-sans text-white">
       <BackgroundEffects />
       <AbyssalLantern />
+      <DepthHUD />
       <Sidebar perfil={perfilAtivo} />
 
-      <main className="mx-auto max-w-5xl px-6 py-12 md:pr-40 relative z-20">
+      <main className="mx-auto max-w-6xl px-6 py-12 md:pl-48 md:pr-40 relative z-20">
         <header className="mb-32 mt-12 border-b border-white/20 pb-8 relative z-20">
           <p className="mb-2 text-sm uppercase tracking-widest text-white/50">
-            Acesso Autorizado: {perfilAtivo.toUpperCase()}
+            Acesso Autorizado:{" "}
+            <DecryptedText text={perfilAtivo.toUpperCase()} delay={300} />
           </p>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mt-2">
             <h1 className="text-4xl font-bold md:text-6xl drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-              Abyssal End
+              <DecryptedText text="Abyssal End" delay={100} />
             </h1>
 
             <button
               onClick={() => setPerfilAtivo(null)}
-              className="rounded-lg border border-ocean-surface/50 bg-ocean-surface/10 px-5 py-2.5 font-mono text-sm text-amber-50 backdrop-blur-md transition-all hover:border-ocean-surface hover:bg-ocean-surface/20 hover:text-white hover:shadow-[0_0_15px_rgba(0,119,190,0.4)]"
+              className="rounded-lg border border-ocean-surface/50 bg-ocean-surface/10 px-5 py-2.5 font-mono text-sm text-ocean-surface backdrop-blur-md transition-all hover:border-ocean-surface hover:bg-ocean-surface/20 hover:text-white hover:shadow-[0_0_15px_rgba(0,119,190,0.4)]"
             >
               [ Resetar Sonar ]
             </button>
@@ -402,6 +406,9 @@ export default function App() {
           const metadadosZona = ZONAS_OCEANO[index];
           const idFixoMaritimo = IDs_MARITIMOS[index];
 
+          // Calcula um delay progressivo baseado no índice para criar um efeito em cascata
+          const cascadeDelay = 500 + index * 200;
+
           return (
             <section
               id={idFixoMaritimo}
@@ -409,10 +416,19 @@ export default function App() {
               className="min-h-[80vh] pt-20"
             >
               <div className="mb-8 inline-block rounded-full bg-white/10 px-4 py-1 text-sm font-mono tracking-wide uppercase">
-                ZONA {idFixoMaritimo} / {metadadosZona.prof}
+                <DecryptedText
+                  text={`ZONA ${idFixoMaritimo} / ${metadadosZona.prof}`}
+                  delay={cascadeDelay}
+                  speed={15}
+                />
               </div>
 
-              <h2 className="mb-12 text-3xl font-bold">{SecaoAtual.titulo}</h2>
+              <h2 className="mb-12 text-3xl font-bold">
+                <DecryptedText
+                  text={SecaoAtual.titulo}
+                  delay={cascadeDelay + 150}
+                />
+              </h2>
 
               <SecaoComponente perfil={perfilAtivo} />
             </section>
