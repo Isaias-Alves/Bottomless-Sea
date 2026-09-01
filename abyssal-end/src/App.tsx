@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FaAppleAlt, FaGithub, FaLinkedin } from "react-icons/fa";
 import { SonarSelector, type PerfilAcesso } from "./components/SonarSelector";
 import { AbyssalLantern } from "./components/AbyssalLantern";
 import { Sidebar } from "./components/Sidebar";
@@ -70,6 +71,17 @@ const BackgroundEffects = () => {
 // Componentes de conteúdo das seções
 const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
   const [clickCount, setClickCount] = React.useState(0);
+  const [showWarning, setShowWarning] = React.useState(false);
+
+  // Gatilho do aviso no canto da tela ao carregar o perfil Mergulhador
+  React.useEffect(() => {
+    if (perfil === "mergulhador") {
+      setShowWarning(true);
+      // Auto-oculta a notificação após 12 segundos para não obstruir a tela para sempre
+      const timer = setTimeout(() => setShowWarning(false), 12000);
+      return () => clearTimeout(timer);
+    }
+  }, [perfil]);
 
   const handleAvatarClick = () => {
     if (perfil === "mergulhador" && onAtivarAnomalia) {
@@ -78,74 +90,140 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
 
       if (newCount === 3) {
         onAtivarAnomalia();
-        setClickCount(0);
+        // Oculta o aviso caso ainda esteja na tela e reseta as maçãs após um breve atraso
+        setShowWarning(false);
+        setTimeout(() => setClickCount(0), 1000);
       }
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-10 md:flex-row md:items-start relative z-20">
-      <div className="flex flex-col items-center">
-        <div
-          onClick={handleAvatarClick}
-          className={`flex h-40 w-40 items-center justify-center rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-sm transition-colors ${
-            perfil === "mergulhador"
-              ? "cursor-pointer hover:border-white/50 hover:bg-white/10 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-              : ""
-          }`}
-          title={
-            perfil === "mergulhador" ? "Anomalia abissal detectada..." : ""
-          }
-        >
-          <span className="text-sm text-white/50">Avatar</span>
-        </div>
-        <p className="mt-4 text-xl font-semibold">Isaías Alves</p>
-      </div>
-
-      <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
-        <h3 className="text-2xl font-bold">
-          Desenvolvedor de Software Front-End
-        </h3>
-        <p className="mt-1 text-white/50">
-          19 anos • 4ºP Engenharia de Software (PUC Minas)
-        </p>
-        <p className="mt-6 leading-relaxed text-white/80">
-          Tenho foco na construção de sistemas eficientes e escaláveis. Trabalho
-          em projetos pessoais dos mais diversos tipos, desde aplicações web até
-          mesmo módulos para RPG de mesa.
-        </p>
-
-        {perfil === "tubarao" && (
-          <div className="mt-6 border-t border-white/10 pt-6">
-            <h4 className="text-lg font-bold text-red-400 mb-3">
-              Foco Acadêmico & Soft Skills
+    <>
+      {/* Alerta do Sistema (Notificação flutuante) */}
+      {showWarning && (
+        <div className="fixed bottom-8 right-8 z-[60] flex max-w-sm items-start gap-4 rounded-xl border border-red-500/30 bg-black/90 p-5 shadow-[0_0_30px_rgba(239,68,68,0.2)] backdrop-blur-xl">
+          <svg
+            className="mt-1 h-6 w-6 shrink-0 text-red-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <div>
+            <h4 className="font-mono text-sm font-bold tracking-widest text-red-400">
+              TRANSMISSÃO INTERCEPTADA
             </h4>
-            <ul className="list-disc list-inside text-sm text-white/70 space-y-1">
-              <li>Interesse ativo em Iniciação Científica e Pesquisa.</li>
-              <li>Comunicação assertiva e adaptável ao público.</li>
-              <li>
-                Experiência em grupos de iniciação científica no Ensino Médio.
-              </li>
-              <li>Inglês Avançado (Leitura e Escrita técnica fluentes).</li>
-            </ul>
+            <p className="mt-2 text-sm leading-relaxed text-white/80">
+              Alguns mergulhadores encontraram uma{" "}
+              <span className="font-bold text-red-400">maçã podre</span> próxima
+              ao avatar. Sugerimos extrema cautela.
+            </p>
           </div>
-        )}
+          <button
+            onClick={() => setShowWarning(false)}
+            className="text-white/40 transition-colors hover:text-white"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
-        {perfil === "baleia" && (
-          <div className="mt-6 flex gap-3">
-            <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-              Disponível para Estágio
-            </span>
-            <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-              Trabalho em Equipe
-            </span>
-            <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-              Pensamento Analítico
-            </span>
+      <div className="flex flex-col items-center gap-10 md:flex-row md:items-start relative z-20">
+        {/* Coluna do Avatar e Marcadores */}
+        <div className="flex flex-col items-center">
+          <div
+            onClick={handleAvatarClick}
+            className={`relative flex h-40 w-40 overflow-hidden items-center justify-center rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-sm transition-all ${
+              perfil === "mergulhador"
+                ? "cursor-pointer hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                : ""
+            }`}
+            title={
+              perfil === "mergulhador" ? "Anomalia abissal detectada..." : ""
+            }
+          >
+            <img
+              src="/EU.jpg"
+              alt="Isaías Alves"
+              className="h-full w-full object-cover"
+            />
           </div>
-        )}
+          <p className="mt-4 text-xl font-semibold">Isaías Alves</p>
+
+          {/* Indicador de Maçãs (Exclusivo do Mergulhador) */}
+          {perfil === "mergulhador" && (
+            <div className="mt-4 flex gap-3">
+              {[0, 1, 2].map((index) => {
+                // A maçã fica "podre" (preta) se a contagem de cliques for maior que o índice atual dela
+                const isRotten = clickCount > index;
+
+                return (
+                  <FaAppleAlt
+                    key={index}
+                    className={`h-5 w-5 transition-all duration-700 ${
+                      isRotten
+                        ? "text-black drop-shadow-[0_0_4px_rgba(255,255,255,0.3)] scale-90"
+                        : "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Coluna de Texto */}
+        <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
+          <h3 className="text-2xl font-bold">
+            Desenvolvedor de Software Front-End
+          </h3>
+          <p className="mt-1 text-white/50">
+            19 anos • 4ºP Engenharia de Software (PUC Minas)
+          </p>
+          <p className="mt-6 leading-relaxed text-white/80">
+            Tenho foco na construção de sistemas eficientes e escaláveis.
+            Trabalho em projetos pessoais dos mais diversos tipos, desde
+            aplicações web até mesmo módulos para RPG de mesa.
+          </p>
+
+          {perfil === "tubarao" && (
+            <div className="mt-6 border-t border-white/10 pt-6">
+              <h4 className="text-lg font-bold text-red-400 mb-3">
+                Foco Acadêmico & Soft Skills
+              </h4>
+              <ul className="list-disc list-inside text-sm text-white/70 space-y-1">
+                <li>Interesse ativo em Iniciação Científica e Pesquisa.</li>
+                <li>Comunicação assertiva e adaptável ao público.</li>
+                <li>
+                  Experiência em grupos de iniciação científica no Ensino Médio.
+                </li>
+                <li>Inglês Avançado (Leitura e Escrita técnica fluentes).</li>
+              </ul>
+            </div>
+          )}
+
+          {perfil === "baleia" && (
+            <div className="mt-6 flex gap-3">
+              <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
+                Disponível para Estágio
+              </span>
+              <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
+                Trabalho em Equipe
+              </span>
+              <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
+                Pensamento Analítico
+              </span>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -365,7 +443,7 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
 );
 
 const ConteudoContato: React.FC<SecaoProps> = () => (
-  <div className="w-full text-center rounded-3xl border border-white/10 bg-white/5 p-12 backdrop-blur-xl relative z-20">
+  <div className="flex flex-col items-center w-full text-center rounded-3xl border border-white/10 bg-white/5 p-12 backdrop-blur-xl relative z-20">
     <h2 className="mb-4 text-3xl font-bold">Chegamos ao fundo.</h2>
     <a
       href="mailto:isaiasalvesdesouzasantos@gmail.com"
@@ -373,6 +451,28 @@ const ConteudoContato: React.FC<SecaoProps> = () => (
     >
       isaiasalvesdesouzasantos@gmail.com
     </a>
+
+    <div className="flex flex-wrap gap-6 justify-center">
+      <a
+        href="https://github.com/isaias-alves"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-semibold transition-all hover:border-white/50 hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+      >
+        <FaGithub className="text-xl" />
+        GitHub
+      </a>
+
+      <a
+        href="https://linkedin.com/in/isaias-alves"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 rounded-lg border border-blue-500/30 bg-blue-500/5 px-6 py-3 font-semibold text-blue-300 transition-all hover:border-blue-500/60 hover:bg-blue-500/10 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+      >
+        <FaLinkedin className="text-xl" />
+        LinkedIn
+      </a>
+    </div>
   </div>
 );
 
@@ -450,9 +550,13 @@ export default function App() {
                 setPerfilAtivo(null);
                 setAnomaliaAtiva(false);
               }}
-              className="rounded-lg border border-ocean-surface/50 bg-ocean-surface/10 px-5 py-2.5 font-mono text-sm text-ocean-surface backdrop-blur-md transition-all hover:border-ocean-surface hover:bg-ocean-surface/20 hover:text-white hover:shadow-[0_0_15px_rgba(0,119,190,0.4)]"
+              className="group relative flex items-center gap-3 rounded-lg border-2 border-cyan-500/50 bg-cyan-950/50 px-6 py-3 font-mono text-sm font-bold text-cyan-400 backdrop-blur-md transition-all hover:border-cyan-400 hover:bg-cyan-900 hover:text-white hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]"
             >
-              [ Resetar Sonar ]
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-500 group-hover:bg-white transition-colors"></span>
+              </span>
+              [ RESETAR SONAR ]
             </button>
           </div>
         </header>

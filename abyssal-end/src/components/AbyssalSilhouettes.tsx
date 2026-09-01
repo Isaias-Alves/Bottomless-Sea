@@ -2,7 +2,7 @@ export function AbyssalSilhouettes() {
   return (
     <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden z-0">
       {/* Epipelágica/Mesopelágica: Arraia Jamanta */}
-      <div className="absolute top-[15%] left-[-5%] w-[600px] opacity-[0.03] text-white rotate-12">
+      <div className="absolute top-[15%] left-[-5%] w-150 opacity-[0.03] text-white rotate-12">
         <svg
           viewBox="0 0 512 512"
           fill="currentColor"
@@ -16,7 +16,7 @@ export function AbyssalSilhouettes() {
       </div>
 
       {/* Batipelágica: Cachalote Gigante */}
-      <div className="absolute top-[45%] right-[-10%] w-[900px] opacity-[0.02] text-white -scale-x-100 -rotate-6">
+      <div className="absolute top-[45%] right-[-10%] w-225 opacity-[0.02] text-white -scale-x-100 -rotate-6">
         <svg
           viewBox="0 0 640 512"
           fill="currentColor"
