@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FaAppleAlt, FaGithub, FaLinkedin } from "react-icons/fa";
+import { FaAppleAlt, FaGithub, FaLinkedin, FaPaperPlane } from "react-icons/fa";
 import { SonarSelector, type PerfilAcesso } from "./components/SonarSelector";
 import { AbyssalLantern } from "./components/AbyssalLantern";
 import { Sidebar } from "./components/Sidebar";
@@ -73,7 +73,48 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
   const [clickCount, setClickCount] = React.useState(0);
   const [showWarning, setShowWarning] = React.useState(false);
 
-  // Gatilho do aviso no canto da tela ao carregar o perfil Mergulhador
+  // Estado de Internacionalização (i18n)
+  const [idioma, setIdioma] = React.useState<"pt" | "en">("pt");
+
+  // Dicionário de conteúdo dinâmico
+  const content =
+    idioma === "pt"
+      ? {
+          cargo: "Desenvolvedor de Software Front-End",
+          bioAcademica: "19 anos • 4ºP Engenharia de Software (PUC Minas)",
+          desc: "Tenho foco na construção de sistemas eficientes e escaláveis. Trabalho em projetos pessoais dos mais diversos tipos, desde aplicações web até mesmo módulos para RPG de mesa.",
+          tubaraoTitulo: "Foco Acadêmico & Soft Skills",
+          tubaraoLista: [
+            "Interesse ativo em Iniciação Científica e Pesquisa.",
+            "Comunicação assertiva e adaptável ao público.",
+            "Experiência em grupos de iniciação científica no Ensino Médio.",
+            "Inglês Avançado (Leitura e Escrita técnica fluentes).",
+          ],
+          baleiaTags: [
+            "Disponível para Estágio",
+            "Trabalho em Equipe",
+            "Pensamento Analítico",
+          ],
+        }
+      : {
+          cargo: "Front-End Software Developer",
+          bioAcademica:
+            "19 years old • 4th Term Software Engineering (PUC Minas)",
+          desc: "My focus is on building efficient and scalable systems. I work on personal projects of various kinds, ranging from web applications to tabletop RPG modules.",
+          tubaraoTitulo: "Academic Focus & Soft Skills",
+          tubaraoLista: [
+            "Active interest in Scientific Initiation and Research.",
+            "Assertive communication adaptable to the audience.",
+            "Experience in high school scientific initiation groups.",
+            "Advanced English (Fluent technical reading and writing).",
+          ],
+          baleiaTags: [
+            "Available for Internship",
+            "Teamwork",
+            "Analytical Thinking",
+          ],
+        };
+
   React.useEffect(() => {
     if (perfil === "mergulhador") {
       setShowWarning(true);
@@ -97,7 +138,6 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
 
   return (
     <>
-      {/* Alerta do Sistema (Notificação flutuante) */}
       {showWarning && (
         <div className="fixed bottom-8 right-8 z-[60] flex max-w-sm items-start gap-4 rounded-xl border border-red-500/30 bg-black/90 p-5 shadow-[0_0_30px_rgba(239,68,68,0.2)] backdrop-blur-xl">
           <svg
@@ -153,12 +193,10 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
           </div>
           <p className="mt-4 text-xl font-semibold">Isaías Alves</p>
 
-          {/* Indicador de Maçãs (Exclusivo do Mergulhador) */}
           {perfil === "mergulhador" && (
             <div className="mt-4 flex gap-3">
               {[0, 1, 2].map((index) => {
                 const isRotten = clickCount > index;
-
                 return (
                   <FaAppleAlt
                     key={index}
@@ -174,48 +212,51 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
           )}
         </div>
 
-        <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
-          <h3 className="text-2xl font-bold">
-            Desenvolvedor de Software Front-End
-          </h3>
-          <p className="mt-1 text-white/50">
-            19 anos • 4ºP Engenharia de Software (PUC Minas)
-          </p>
-          <p className="mt-6 leading-relaxed text-white/80">
-            Tenho foco na construção de sistemas eficientes e escaláveis.
-            Trabalho em projetos pessoais dos mais diversos tipos, desde
-            aplicações web até mesmo módulos para RPG de mesa.
-          </p>
+        <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md relative">
+          {/* Controle de Idioma */}
+          <div className="absolute top-6 right-6 flex gap-2 font-mono text-xs">
+            <button
+              onClick={() => setIdioma("pt")}
+              className={`transition-colors ${idioma === "pt" ? "text-cyan-400 font-bold" : "text-white/40 hover:text-white"}`}
+            >
+              PT
+            </button>
+            <span className="text-white/20">|</span>
+            <button
+              onClick={() => setIdioma("en")}
+              className={`transition-colors ${idioma === "en" ? "text-cyan-400 font-bold" : "text-white/40 hover:text-white"}`}
+            >
+              EN
+            </button>
+          </div>
 
-          {/* ACESSO: Tubarão + Mergulhador */}
+          <h3 className="text-2xl font-bold pr-16">{content.cargo}</h3>
+          <p className="mt-1 text-white/50">{content.bioAcademica}</p>
+          <p className="mt-6 leading-relaxed text-white/80">{content.desc}</p>
+
           {(perfil === "tubarao" || perfil === "mergulhador") && (
             <div className="mt-6 border-t border-white/10 pt-6">
               <h4 className="text-lg font-bold text-red-400 mb-3">
-                Foco Acadêmico & Soft Skills
+                {content.tubaraoTitulo}
               </h4>
               <ul className="list-disc list-inside text-sm text-white/70 space-y-1">
-                <li>Interesse ativo em Iniciação Científica e Pesquisa.</li>
-                <li>Comunicação assertiva e adaptável ao público.</li>
-                <li>
-                  Experiência em grupos de iniciação científica no Ensino Médio.
-                </li>
-                <li>Inglês Avançado (Leitura e Escrita técnica fluentes).</li>
+                {content.tubaraoLista.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
               </ul>
             </div>
           )}
 
-          {/* ACESSO: Baleia + Mergulhador */}
           {(perfil === "baleia" || perfil === "mergulhador") && (
             <div className="mt-6 flex flex-wrap gap-3">
-              <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-                Disponível para Estágio
-              </span>
-              <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-                Trabalho em Equipe
-              </span>
-              <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-                Pensamento Analítico
-              </span>
+              {content.baleiaTags.map((tag, i) => (
+                <span
+                  key={i}
+                  className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
           )}
         </div>
@@ -265,7 +306,6 @@ const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     </div>
 
-    {/* ACESSO: Baleia + Mergulhador */}
     {(perfil === "baleia" || perfil === "mergulhador") && (
       <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6 backdrop-blur-md">
         <h3 className="mb-4 text-xl font-bold text-purple-300">
@@ -291,7 +331,6 @@ const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     )}
 
-    {/* ACESSO: Sardinha + Mergulhador */}
     {(perfil === "sardinha" || perfil === "mergulhador") && (
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
@@ -333,22 +372,15 @@ const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => {
       ].map((proj) => (
         <div
           key={proj}
-          className={`flex flex-col overflow-hidden rounded-2xl border p-6 backdrop-blur-md transition-transform hover:-translate-y-1 ${
-            perfil === "baleia" || perfil === "mergulhador"
-              ? "border-purple-500/30 bg-purple-500/5"
-              : "border-white/10 bg-white/5"
-          }`}
+          className={`flex flex-col overflow-hidden rounded-2xl border p-6 backdrop-blur-md transition-transform hover:-translate-y-1 ${perfil === "baleia" || perfil === "mergulhador" ? "border-purple-500/30 bg-purple-500/5" : "border-white/10 bg-white/5"}`}
         >
           <h3 className="text-xl font-bold">{proj}</h3>
-
-          {/* ACESSO: Baleia + Mergulhador */}
           {(perfil === "baleia" || perfil === "mergulhador") &&
             archBadges[proj] && (
               <div className="mt-4 inline-block w-fit rounded bg-purple-500/20 border border-purple-500/30 px-2 py-1 text-xs text-purple-300">
                 {archBadges[proj]}
               </div>
             )}
-
           <a
             href="#"
             className="mt-auto inline-block border-t border-white/10 pt-4 text-sm font-semibold hover:text-blue-300"
@@ -375,7 +407,6 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     </div>
 
-    {/* ACESSO: Baleia + Mergulhador */}
     {(perfil === "baleia" || perfil === "mergulhador") && (
       <div className="mt-12 rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
         <h3 className="mb-6 text-xl font-bold text-purple-300">
@@ -406,16 +437,13 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     )}
 
-    {/* ACESSO: Tubarão + Mergulhador */}
     {(perfil === "tubarao" || perfil === "mergulhador") && (
       <div className="mt-24">
         <h3 className="mb-10 text-2xl font-bold text-red-400">
           Certificações Acadêmicas
         </h3>
-
         <div className="relative">
           <div className="absolute left-0 top-2.25 hidden w-full border-t border-white/20 md:block"></div>
-
           <div className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8">
             {[
               {
@@ -445,39 +473,119 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
   </div>
 );
 
-const ConteudoContato: React.FC<SecaoProps> = () => (
-  <div className="flex flex-col items-center w-full text-center rounded-3xl border border-white/10 bg-white/5 p-12 backdrop-blur-xl relative z-20">
-    <h2 className="mb-4 text-3xl font-bold">Chegamos ao fundo.</h2>
-    <a
-      href="mailto:isaiasalvesdesouzasantos@gmail.com"
-      className="mb-8 inline-block rounded-xl bg-white px-8 py-4 text-lg font-bold text-black transition-transform hover:scale-105"
-    >
-      isaiasalvesdesouzasantos@gmail.com
-    </a>
+const ConteudoContato: React.FC<SecaoProps> = () => {
+  const [formData, setFormData] = React.useState({
+    nome: "",
+    email: "",
+    mensagem: "",
+  });
 
-    <div className="flex flex-wrap gap-6 justify-center">
-      <a
-        href="https://github.com/SeuUsuario"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-semibold transition-all hover:border-white/50 hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-      >
-        <FaGithub className="text-xl" />
-        GitHub
-      </a>
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const subject = encodeURIComponent(
+      `Contato via Portfólio - ${formData.nome}`,
+    );
+    const body = encodeURIComponent(
+      `Nome: ${formData.nome}\nEmail: ${formData.email}\n\nMensagem:\n${formData.mensagem}`,
+    );
+    window.open(
+      `mailto:isaiasalvesdesouzasantos@gmail.com?subject=${subject}&body=${body}`,
+    );
+  };
 
-      <a
-        href="https://linkedin.com/in/SeuUsuario"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-3 rounded-lg border border-blue-500/30 bg-blue-500/5 px-6 py-3 font-semibold text-blue-300 transition-all hover:border-blue-500/60 hover:bg-blue-500/10 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-      >
-        <FaLinkedin className="text-xl" />
-        LinkedIn
-      </a>
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  return (
+    <div className="flex flex-col md:flex-row gap-12 w-full rounded-3xl border border-white/10 bg-white/5 p-8 md:p-12 backdrop-blur-xl relative z-20">
+      {/* Coluna Esquerda: Formulário Funcional */}
+      <div className="flex-1">
+        <h2 className="mb-6 text-3xl font-bold">Chegamos ao fundo.</h2>
+        <p className="mb-8 text-white/60">
+          Sinta-se à vontade para enviar uma mensagem diretamente. Retornarei o
+          contato o mais breve possível.
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <input
+            type="text"
+            name="nome"
+            required
+            placeholder="Seu Nome"
+            value={formData.nome}
+            onChange={handleChange}
+            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all"
+          />
+          <input
+            type="email"
+            name="email"
+            required
+            placeholder="Seu E-mail"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all"
+          />
+          <textarea
+            name="mensagem"
+            required
+            placeholder="Sua Mensagem..."
+            rows={4}
+            value={formData.mensagem}
+            onChange={handleChange}
+            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all resize-none"
+          ></textarea>
+
+          <button
+            type="submit"
+            className="flex items-center justify-center gap-2 w-full mt-2 rounded-lg bg-cyan-950/80 border border-cyan-500/50 px-6 py-4 font-bold text-cyan-400 transition-all hover:bg-cyan-900 hover:text-white hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]"
+          >
+            <FaPaperPlane />
+            ENVIAR TRANSMISSÃO
+          </button>
+        </form>
+      </div>
+
+      {/* Coluna Direita: Links Sociais */}
+      <div className="flex-1 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-white/10 pt-10 md:pt-0 md:pl-12">
+        <h3 className="mb-6 text-xl font-semibold text-white/50">
+          Outros Canais
+        </h3>
+
+        <div className="flex flex-col w-full max-w-xs gap-4">
+          <a
+            href="mailto:isaiasalvesdesouzasantos@gmail.com"
+            className="flex items-center justify-center gap-3 w-full rounded-xl bg-white px-6 py-4 text-sm font-bold text-black transition-transform hover:scale-105"
+          >
+            E-MAIL DIRETO
+          </a>
+
+          <a
+            href="https://github.com/isaias-alves"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 w-full rounded-lg border border-white/20 bg-white/5 px-6 py-4 font-semibold transition-all hover:border-white/50 hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+          >
+            <FaGithub className="text-xl" />
+            GitHub
+          </a>
+
+          <a
+            href="https://linkedin.com/in/isaias-alves"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 w-full rounded-lg border border-blue-500/30 bg-blue-500/5 px-6 py-4 font-semibold text-blue-300 transition-all hover:border-blue-500/60 hover:bg-blue-500/10 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+          >
+            <FaLinkedin className="text-xl" />
+            LinkedIn
+          </a>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Mapeamento referencial dos componentes
 const COMPONENTES_SECAO: Record<
@@ -506,7 +614,6 @@ export default function App() {
 
   return (
     <div className="relative w-full overflow-x-hidden font-sans text-white">
-      {/* Camada de Fundo Dinâmica */}
       {anomaliaAtiva ? (
         <video
           autoPlay
@@ -569,7 +676,6 @@ export default function App() {
           const SecaoComponente = SecaoAtual.component;
           const metadadosZona = ZONAS_OCEANO[index];
           const idFixoMaritimo = IDs_MARITIMOS[index];
-
           const cascadeDelay = 500 + index * 200;
 
           return (
@@ -585,14 +691,12 @@ export default function App() {
                   speed={15}
                 />
               </div>
-
               <h2 className="mb-12 text-3xl font-bold">
                 <DecryptedText
                   text={SecaoAtual.titulo}
                   delay={cascadeDelay + 150}
                 />
               </h2>
-
               <SecaoComponente
                 perfil={perfilAtivo}
                 onAtivarAnomalia={() => setAnomaliaAtiva(true)}
