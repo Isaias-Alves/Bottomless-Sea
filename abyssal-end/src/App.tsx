@@ -77,7 +77,6 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
   React.useEffect(() => {
     if (perfil === "mergulhador") {
       setShowWarning(true);
-      // Auto-oculta a notificação após 12 segundos para não obstruir a tela para sempre
       const timer = setTimeout(() => setShowWarning(false), 12000);
       return () => clearTimeout(timer);
     }
@@ -90,7 +89,6 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
 
       if (newCount === 3) {
         onAtivarAnomalia();
-        // Oculta o aviso caso ainda esteja na tela e reseta as maçãs após um breve atraso
         setShowWarning(false);
         setTimeout(() => setClickCount(0), 1000);
       }
@@ -135,7 +133,6 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
       )}
 
       <div className="flex flex-col items-center gap-10 md:flex-row md:items-start relative z-20">
-        {/* Coluna do Avatar e Marcadores */}
         <div className="flex flex-col items-center">
           <div
             onClick={handleAvatarClick}
@@ -160,7 +157,6 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
           {perfil === "mergulhador" && (
             <div className="mt-4 flex gap-3">
               {[0, 1, 2].map((index) => {
-                // A maçã fica "podre" (preta) se a contagem de cliques for maior que o índice atual dela
                 const isRotten = clickCount > index;
 
                 return (
@@ -178,7 +174,6 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
           )}
         </div>
 
-        {/* Coluna de Texto */}
         <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md">
           <h3 className="text-2xl font-bold">
             Desenvolvedor de Software Front-End
@@ -192,7 +187,8 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
             aplicações web até mesmo módulos para RPG de mesa.
           </p>
 
-          {perfil === "tubarao" && (
+          {/* ACESSO: Tubarão + Mergulhador */}
+          {(perfil === "tubarao" || perfil === "mergulhador") && (
             <div className="mt-6 border-t border-white/10 pt-6">
               <h4 className="text-lg font-bold text-red-400 mb-3">
                 Foco Acadêmico & Soft Skills
@@ -208,8 +204,9 @@ const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
             </div>
           )}
 
-          {perfil === "baleia" && (
-            <div className="mt-6 flex gap-3">
+          {/* ACESSO: Baleia + Mergulhador */}
+          {(perfil === "baleia" || perfil === "mergulhador") && (
+            <div className="mt-6 flex flex-wrap gap-3">
               <span className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold">
                 Disponível para Estágio
               </span>
@@ -268,7 +265,8 @@ const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     </div>
 
-    {perfil === "baleia" && (
+    {/* ACESSO: Baleia + Mergulhador */}
+    {(perfil === "baleia" || perfil === "mergulhador") && (
       <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6 backdrop-blur-md">
         <h3 className="mb-4 text-xl font-bold text-purple-300">
           Práticas de Engenharia & Metodologias
@@ -293,7 +291,8 @@ const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     )}
 
-    {perfil === "sardinha" && (
+    {/* ACESSO: Sardinha + Mergulhador */}
+    {(perfil === "sardinha" || perfil === "mergulhador") && (
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
           { label: "Projetos Independentes", value: "5+" },
@@ -335,18 +334,20 @@ const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => {
         <div
           key={proj}
           className={`flex flex-col overflow-hidden rounded-2xl border p-6 backdrop-blur-md transition-transform hover:-translate-y-1 ${
-            perfil === "baleia"
+            perfil === "baleia" || perfil === "mergulhador"
               ? "border-purple-500/30 bg-purple-500/5"
               : "border-white/10 bg-white/5"
           }`}
         >
           <h3 className="text-xl font-bold">{proj}</h3>
 
-          {perfil === "baleia" && archBadges[proj] && (
-            <div className="mt-4 inline-block w-fit rounded bg-purple-500/20 border border-purple-500/30 px-2 py-1 text-xs text-purple-300">
-              {archBadges[proj]}
-            </div>
-          )}
+          {/* ACESSO: Baleia + Mergulhador */}
+          {(perfil === "baleia" || perfil === "mergulhador") &&
+            archBadges[proj] && (
+              <div className="mt-4 inline-block w-fit rounded bg-purple-500/20 border border-purple-500/30 px-2 py-1 text-xs text-purple-300">
+                {archBadges[proj]}
+              </div>
+            )}
 
           <a
             href="#"
@@ -374,7 +375,8 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     </div>
 
-    {perfil === "baleia" && (
+    {/* ACESSO: Baleia + Mergulhador */}
+    {(perfil === "baleia" || perfil === "mergulhador") && (
       <div className="mt-12 rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
         <h3 className="mb-6 text-xl font-bold text-purple-300">
           Resumo de Atuação Corporativa
@@ -404,7 +406,8 @@ const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
       </div>
     )}
 
-    {perfil === "tubarao" && (
+    {/* ACESSO: Tubarão + Mergulhador */}
+    {(perfil === "tubarao" || perfil === "mergulhador") && (
       <div className="mt-24">
         <h3 className="mb-10 text-2xl font-bold text-red-400">
           Certificações Acadêmicas
@@ -454,7 +457,7 @@ const ConteudoContato: React.FC<SecaoProps> = () => (
 
     <div className="flex flex-wrap gap-6 justify-center">
       <a
-        href="https://github.com/isaias-alves"
+        href="https://github.com/SeuUsuario"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-3 rounded-lg border border-white/20 bg-white/5 px-6 py-3 font-semibold transition-all hover:border-white/50 hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
@@ -464,7 +467,7 @@ const ConteudoContato: React.FC<SecaoProps> = () => (
       </a>
 
       <a
-        href="https://linkedin.com/in/isaias-alves"
+        href="https://linkedin.com/in/SeuUsuario"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-3 rounded-lg border border-blue-500/30 bg-blue-500/5 px-6 py-3 font-semibold text-blue-300 transition-all hover:border-blue-500/60 hover:bg-blue-500/10 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]"
