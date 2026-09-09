@@ -22,9 +22,9 @@ _Para aguentar a pressão e os tubarões da engenharia, escolha o melhor para me
 
 ## Tecnologias usadas e Deploy
 
-**Claude** Usado em grande parte do código para modificações estéticas e de otimização
-**React** Usado graças a velocidade e facilidade de modularização de componentes
-**TailWindCSS** Usado para a estilização pela facilidade de manutenção
+- **Claude** Usado em grande parte do código para modificações estéticas e de otimização
+- **React** Usado graças a velocidade e facilidade de modularização de componentes
+- **TailWindCSS** Usado para a estilização pela facilidade de manutenção
 
 Link de acesso ao deploy: https://bottomless-sea-two.vercel.app/
 
