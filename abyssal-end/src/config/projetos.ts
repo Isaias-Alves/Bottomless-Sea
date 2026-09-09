@@ -46,7 +46,7 @@ export const PROJETOS: Projeto[] = [
       "Implementação do algoritmo do Banqueiro em Python para simular e prevenir deadlocks na alocação concorrente de recursos.",
     stack: ["Python", "Concorrência", "Estruturas de Dados"],
     arquitetura: "Algoritmos Otimizados / Concorrência",
-    repo: null,
+    repo: "https://github.com/catmaitachi/El_Banqueiro",
     demo: null,
     cor: "#4ade80",
     destaquePara: ["sardinha", "tubarao"],

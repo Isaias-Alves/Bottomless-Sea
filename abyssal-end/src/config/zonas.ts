@@ -8,11 +8,7 @@
  */
 
 export type ChaveSecao =
-  | "sobre"
-  | "stacks"
-  | "projetos"
-  | "experiencia"
-  | "contato";
+  "sobre" | "stacks" | "projetos" | "experiencia" | "contato";
 
 export type PerfilAcesso = "sardinha" | "tubarao" | "baleia" | "mergulhador";
 
@@ -37,7 +33,6 @@ export interface Zona {
    * a 200 m e "aos poucos o sol desaparece" a 1.000 m. Na zona, qualquer
    * ordem continua coerente.
    */
-  legenda: string;
 }
 
 export const ZONAS: Zona[] = [
