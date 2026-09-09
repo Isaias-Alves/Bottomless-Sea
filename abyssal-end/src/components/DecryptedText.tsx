@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useMovimentoReduzido } from "../hooks/useMovimentoReduzido";
 
 interface DecryptedTextProps {
   text: string;
@@ -6,79 +7,81 @@ interface DecryptedTextProps {
   delay?: number;
 }
 
-const CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*<>TOUHOU";
+const CARACTERES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*<>TOUHOU";
 
+/**
+ * Texto que "descriptografa" ao entrar na tela.
+ * Com movimento reduzido o efeito é pulado — o conteúdo aparece direto,
+ * sem meio segundo de ruído ilegível.
+ */
 export function DecryptedText({
   text,
   speed = 30,
   delay = 0,
 }: DecryptedTextProps) {
-  // Inicializa o texto ofuscado (com o mesmo tamanho da string original)
-  const [displayText, setDisplayText] = useState(
-    Array(text.length).fill("0").join(""),
+  const movimentoReduzido = useMovimentoReduzido();
+  const [textoDecifrado, setTextoDecifrado] = useState(() =>
+    "0".repeat(text.length),
   );
   const containerRef = useRef<HTMLSpanElement>(null);
-  const [hasStarted, setHasStarted] = useState(false);
+  const [iniciou, setIniciou] = useState(false);
 
-  // Observador de Scroll: Detecta quando o texto entra na tela
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasStarted) {
-          setHasStarted(true);
-        }
+    if (movimentoReduzido) return;
+
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        if (entrada.isIntersecting) setIniciou(true);
       },
       { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
     );
 
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
+    if (containerRef.current) observador.observe(containerRef.current);
+    return () => observador.disconnect();
+  }, [movimentoReduzido]);
 
-    return () => observer.disconnect();
-  }, [hasStarted]);
-
-  // Lógica de Descriptografia: Só roda após hasStarted virar true
   useEffect(() => {
-    if (!hasStarted) return;
+    if (movimentoReduzido || !iniciou) return;
 
-    let iteration = 0;
-    let interval: ReturnType<typeof setInterval>;
-    let timeoutId: ReturnType<typeof setTimeout>;
+    let iteracao = 0;
+    let intervalo: ReturnType<typeof setInterval>;
 
-    const startDecryption = () => {
-      interval = setInterval(() => {
-        setDisplayText(
+    const descriptografar = () => {
+      intervalo = setInterval(() => {
+        setTextoDecifrado(
           text
             .split("")
-            .map((_, index) => {
-              if (index < iteration) {
-                return text[index];
-              }
-              return CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)];
-            })
+            .map((caractere, indice) =>
+              indice < iteracao
+                ? caractere
+                : CARACTERES[Math.floor(Math.random() * CARACTERES.length)],
+            )
             .join(""),
         );
 
-        iteration += 1 / 3;
-
-        if (iteration >= text.length) {
-          clearInterval(interval);
+        iteracao += 1 / 3;
+        if (iteracao >= text.length) {
+          clearInterval(intervalo);
+          setTextoDecifrado(text);
         }
       }, speed);
     };
 
-    if (delay > 0) {
-      timeoutId = setTimeout(startDecryption, delay);
-    } else {
-      startDecryption();
-    }
+    const temporizador = setTimeout(descriptografar, delay);
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(timeoutId);
+      clearInterval(intervalo);
+      clearTimeout(temporizador);
     };
-  }, [text, speed, delay, hasStarted]);
+  }, [text, speed, delay, iniciou, movimentoReduzido]);
 
-  return <span ref={containerRef}>{displayText}</span>;
+  // O texto real fica no DOM para leitores de tela; o ruído é decorativo.
+  const textoVisivel = movimentoReduzido ? text : textoDecifrado;
+
+  return (
+    <span ref={containerRef}>
+      <span aria-hidden="true">{textoVisivel}</span>
+      <span className="sr-only">{text}</span>
+    </span>
+  );
 }

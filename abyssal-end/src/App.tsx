@@ -1,624 +1,61 @@
-import React, { useState } from "react";
-import { FaAppleAlt, FaGithub, FaLinkedin, FaPaperPlane } from "react-icons/fa";
-import { SonarSelector, type PerfilAcesso } from "./components/SonarSelector";
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { PainelSubmarino } from "./components/painel/PainelSubmarino";
 import { AbyssalLantern } from "./components/AbyssalLantern";
-import { Sidebar } from "./components/Sidebar";
-import { DepthHUD } from "./components/DepthHUD";
-import { DecryptedText } from "./components/DecryptedText";
 import { AbyssalSilhouettes } from "./components/AbyssalSilhouettes";
+import { AmbienteMarinho } from "./components/AmbienteMarinho";
+import { DecryptedText } from "./components/DecryptedText";
+import { DepthHUD } from "./components/DepthHUD";
+import { Sidebar } from "./components/Sidebar";
+import { Superficie } from "./components/Superficie";
+import { Termoclina } from "./components/Termoclina";
+import { VidaMarinha } from "./components/VidaMarinha";
+import { COMPONENTES_SECAO } from "./sections";
+import { SECOES, ZONAS, obterPerfil, type PerfilAcesso } from "./config/zonas";
+import { reiniciarProfundidade } from "./lib/profundidade";
+import { useZonaAtiva } from "./hooks/useProfundidade";
 
-export interface SecaoProps {
-  perfil: PerfilAcesso;
-  onAtivarAnomalia?: () => void;
+/**
+ * O nome da zona vive num componente próprio porque `useZonaAtiva` provoca
+ * um render a cada travessia. Dentro de `Portfolio` isso re-renderizava a
+ * página inteira — todas as seções — cinco vezes por descida, anulando o
+ * desenho do monitor de profundidade, que existe para manter o scroll
+ * fora do ciclo do React.
+ */
+function RodapeZona() {
+  const zona = useZonaAtiva();
+
+  return (
+    <footer className="mt-24 border-t border-white/10 py-10 text-center font-mono text-[11px] uppercase tracking-[0.2em] text-white/30">
+      {ZONAS[zona].nome} · Abyssal End © {new Date().getFullYear()}
+    </footer>
+  );
 }
 
-// Configurações de exibição e ordenação
-const ordemPerfis: Record<PerfilAcesso, string[]> = {
-  mergulhador: ["sobre", "stacks", "projetos", "experiencia", "contato"],
-  sardinha: ["sobre", "stacks", "projetos", "experiencia", "contato"],
-  tubarao: ["sobre", "experiencia", "stacks", "projetos", "contato"],
-  baleia: ["sobre", "experiencia", "projetos", "stacks", "contato"],
-};
-
-const ZONAS_OCEANO = [
-  { nome: "Superfície", prof: "0 - 200m" },
-  { nome: "Crepúsculo", prof: "200 - 1000m" },
-  { nome: "Meia-Noite", prof: "1000 - 4000m" },
-  { nome: "O Abismo", prof: "4000 - 6000m" },
-  { nome: "Trincheiras", prof: "6000m+" },
-];
-
-const IDs_MARITIMOS = [
-  "epipelagica",
-  "mesopelagica",
-  "batipelagica",
-  "abissopelagica",
-  "hadal",
-];
-
-// Efeitos de Fundo (Bolhas e Luz)
-const BackgroundEffects = () => {
-  const bubbles = [
-    { size: 24, left: 10, duration: 18, delay: 0 },
-    { size: 16, left: 25, duration: 22, delay: 5 },
-    { size: 32, left: 45, duration: 15, delay: 2 },
-    { size: 12, left: 65, duration: 25, delay: 8 },
-    { size: 28, left: 85, duration: 20, delay: 12 },
-    { size: 18, left: 75, duration: 19, delay: 18 },
-    { size: 10, left: 35, duration: 24, delay: 15 },
-  ];
-
-  return (
-    <>
-      <div className="sunlight-glow"></div>
-      {bubbles.map((b, i) => (
-        <div
-          key={i}
-          className="bubble"
-          style={{
-            width: `${b.size}px`,
-            height: `${b.size}px`,
-            left: `${b.left}%`,
-            animationDuration: `${b.duration}s`,
-            animationDelay: `${b.delay}s`,
-          }}
-        ></div>
-      ))}
-    </>
-  );
-};
-
-// Componentes de conteúdo das seções
-const ConteudoSobre: React.FC<SecaoProps> = ({ perfil, onAtivarAnomalia }) => {
-  const [clickCount, setClickCount] = React.useState(0);
-  const [showWarning, setShowWarning] = React.useState(false);
-
-  // Estado de Internacionalização (i18n)
-  const [idioma, setIdioma] = React.useState<"pt" | "en">("pt");
-
-  // Dicionário de conteúdo dinâmico
-  const content =
-    idioma === "pt"
-      ? {
-          cargo: "Desenvolvedor de Software Front-End",
-          bioAcademica: "19 anos • 4ºP Engenharia de Software (PUC Minas)",
-          desc: "Tenho foco na construção de sistemas eficientes e escaláveis. Trabalho em projetos pessoais dos mais diversos tipos, desde aplicações web até mesmo módulos para RPG de mesa.",
-          tubaraoTitulo: "Foco Acadêmico & Soft Skills",
-          tubaraoLista: [
-            "Interesse ativo em Iniciação Científica e Pesquisa.",
-            "Comunicação assertiva e adaptável ao público.",
-            "Experiência em grupos de iniciação científica no Ensino Médio.",
-            "Inglês Avançado (Leitura e Escrita técnica fluentes).",
-          ],
-          baleiaTags: [
-            "Disponível para Estágio",
-            "Trabalho em Equipe",
-            "Pensamento Analítico",
-          ],
-        }
-      : {
-          cargo: "Front-End Software Developer",
-          bioAcademica:
-            "19 years old • 4th Term Software Engineering (PUC Minas)",
-          desc: "My focus is on building efficient and scalable systems. I work on personal projects of various kinds, ranging from web applications to tabletop RPG modules.",
-          tubaraoTitulo: "Academic Focus & Soft Skills",
-          tubaraoLista: [
-            "Active interest in Scientific Initiation and Research.",
-            "Assertive communication adaptable to the audience.",
-            "Experience in high school scientific initiation groups.",
-            "Advanced English (Fluent technical reading and writing).",
-          ],
-          baleiaTags: [
-            "Available for Internship",
-            "Teamwork",
-            "Analytical Thinking",
-          ],
-        };
-
-  React.useEffect(() => {
-    if (perfil === "mergulhador") {
-      setShowWarning(true);
-      const timer = setTimeout(() => setShowWarning(false), 12000);
-      return () => clearTimeout(timer);
-    }
-  }, [perfil]);
-
-  const handleAvatarClick = () => {
-    if (perfil === "mergulhador" && onAtivarAnomalia) {
-      const newCount = clickCount + 1;
-      setClickCount(newCount);
-
-      if (newCount === 3) {
-        onAtivarAnomalia();
-        setShowWarning(false);
-        setTimeout(() => setClickCount(0), 1000);
-      }
-    }
-  };
-
-  return (
-    <>
-      {showWarning && (
-        <div className="fixed bottom-8 right-8 z-[60] flex max-w-sm items-start gap-4 rounded-xl border border-red-500/30 bg-black/90 p-5 shadow-[0_0_30px_rgba(239,68,68,0.2)] backdrop-blur-xl">
-          <svg
-            className="mt-1 h-6 w-6 shrink-0 text-red-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <div>
-            <h4 className="font-mono text-sm font-bold tracking-widest text-red-400">
-              TRANSMISSÃO INTERCEPTADA
-            </h4>
-            <p className="mt-2 text-sm leading-relaxed text-white/80">
-              Alguns mergulhadores encontraram uma{" "}
-              <span className="font-bold text-red-400">maçã podre</span> próxima
-              ao avatar. Sugerimos extrema cautela.
-            </p>
-          </div>
-          <button
-            onClick={() => setShowWarning(false)}
-            className="text-white/40 transition-colors hover:text-white"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
-      <div className="flex flex-col items-center gap-10 md:flex-row md:items-start relative z-20">
-        <div className="flex flex-col items-center">
-          <div
-            onClick={handleAvatarClick}
-            className={`relative flex h-40 w-40 overflow-hidden items-center justify-center rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-sm transition-all ${
-              perfil === "mergulhador"
-                ? "cursor-pointer hover:border-white/50 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-                : ""
-            }`}
-            title={
-              perfil === "mergulhador" ? "Anomalia abissal detectada..." : ""
-            }
-          >
-            <img
-              src="/EU.jpg"
-              alt="Isaías Alves"
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <p className="mt-4 text-xl font-semibold">Isaías Alves</p>
-
-          {perfil === "mergulhador" && (
-            <div className="mt-4 flex gap-3">
-              {[0, 1, 2].map((index) => {
-                const isRotten = clickCount > index;
-                return (
-                  <FaAppleAlt
-                    key={index}
-                    className={`h-5 w-5 transition-all duration-700 ${
-                      isRotten
-                        ? "text-black drop-shadow-[0_0_4px_rgba(255,255,255,0.3)] scale-90"
-                        : "text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.6)]"
-                    }`}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-md relative">
-          {/* Controle de Idioma */}
-          <div className="absolute top-6 right-6 flex gap-2 font-mono text-xs">
-            <button
-              onClick={() => setIdioma("pt")}
-              className={`transition-colors ${idioma === "pt" ? "text-cyan-400 font-bold" : "text-white/40 hover:text-white"}`}
-            >
-              PT
-            </button>
-            <span className="text-white/20">|</span>
-            <button
-              onClick={() => setIdioma("en")}
-              className={`transition-colors ${idioma === "en" ? "text-cyan-400 font-bold" : "text-white/40 hover:text-white"}`}
-            >
-              EN
-            </button>
-          </div>
-
-          <h3 className="text-2xl font-bold pr-16">{content.cargo}</h3>
-          <p className="mt-1 text-white/50">{content.bioAcademica}</p>
-          <p className="mt-6 leading-relaxed text-white/80">{content.desc}</p>
-
-          {(perfil === "tubarao" || perfil === "mergulhador") && (
-            <div className="mt-6 border-t border-white/10 pt-6">
-              <h4 className="text-lg font-bold text-red-400 mb-3">
-                {content.tubaraoTitulo}
-              </h4>
-              <ul className="list-disc list-inside text-sm text-white/70 space-y-1">
-                {content.tubaraoLista.map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {(perfil === "baleia" || perfil === "mergulhador") && (
-            <div className="mt-6 flex flex-wrap gap-3">
-              {content.baleiaTags.map((tag, i) => (
-                <span
-                  key={i}
-                  className="rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 px-3 py-1 text-xs font-bold"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </>
-  );
-};
-
-const ConteudoStacks: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="flex flex-col gap-8 relative z-20">
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-        <h3 className="mb-4 text-xl font-bold">Frontend</h3>
-        <div className="flex flex-wrap gap-2">
-          {["React", "TypeScript", "Tailwind CSS", "HTML", "JavaScript"].map(
-            (tech) => (
-              <span
-                key={tech}
-                className="rounded border border-white/20 bg-white/5 px-3 py-1 text-sm transition-colors hover:bg-white/10"
-              >
-                {tech}
-              </span>
-            ),
-          )}
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
-        <h3 className="mb-4 text-xl font-bold">Backend & Ferramentas</h3>
-        <div className="flex flex-wrap gap-2">
-          {[
-            "Java",
-            "Python",
-            "SQL",
-            "Spring Boot",
-            "Linux",
-            "Prompt Engineering",
-          ].map((tech) => (
-            <span
-              key={tech}
-              className="rounded border border-white/20 bg-white/5 px-3 py-1 text-sm transition-colors hover:bg-white/10"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-
-    {(perfil === "baleia" || perfil === "mergulhador") && (
-      <div className="rounded-2xl border border-purple-500/30 bg-purple-500/5 p-6 backdrop-blur-md">
-        <h3 className="mb-4 text-xl font-bold text-purple-300">
-          Práticas de Engenharia & Metodologias
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          {[
-            "Scrum / Kanban",
-            "Clean Code",
-            "Git",
-            "Revisão de Código (PRs)",
-            "UML & BPMN",
-            "Design Patterns",
-          ].map((tech) => (
-            <span
-              key={tech}
-              className="rounded border border-purple-500/40 bg-purple-500/10 px-3 py-1 text-sm text-purple-100"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
-      </div>
-    )}
-
-    {(perfil === "sardinha" || perfil === "mergulhador") && (
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          { label: "Projetos Independentes", value: "5+" },
-          { label: "CTFs & Desafios", value: "15+" },
-          { label: "Commits no Ano", value: "400+" },
-          { label: "Tentativas de Centralizar a DIV", value: "8000+" },
-        ].map((stat, index) => (
-          <div
-            key={index}
-            className="flex flex-col items-center justify-center rounded-2xl border border-green-400/20 bg-green-400/5 p-4 text-center backdrop-blur-md transition-transform hover:scale-105"
-          >
-            <span className="text-3xl font-bold text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]">
-              {stat.value}
-            </span>
-            <span className="mt-2 text-xs font-semibold uppercase tracking-wider text-white/70">
-              {stat.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-);
-
-const ConteudoProjetos: React.FC<SecaoProps> = ({ perfil }) => {
-  const archBadges: Record<string, string> = {
-    "ClinPlaY (Web/Mobile First PWA)": "Arquitetura Componentizada / API REST",
-    "El Banquero (Deadlocks)": "Algoritmos Otimizados / Concorrência",
-    "Coriollis (Tradução PT-BR)": "Gestão de Ativos / Versionamento",
-  };
-
-  return (
-    <div className="grid grid-cols-1 gap-8 md:grid-cols-3 relative z-20">
-      {[
-        "ClinPlaY (Web/Mobile First PWA)",
-        "El Banquero (Deadlocks)",
-        "Coriollis (Tradução PT-BR)",
-      ].map((proj) => (
-        <div
-          key={proj}
-          className={`flex flex-col overflow-hidden rounded-2xl border p-6 backdrop-blur-md transition-transform hover:-translate-y-1 ${perfil === "baleia" || perfil === "mergulhador" ? "border-purple-500/30 bg-purple-500/5" : "border-white/10 bg-white/5"}`}
-        >
-          <h3 className="text-xl font-bold">{proj}</h3>
-          {(perfil === "baleia" || perfil === "mergulhador") &&
-            archBadges[proj] && (
-              <div className="mt-4 inline-block w-fit rounded bg-purple-500/20 border border-purple-500/30 px-2 py-1 text-xs text-purple-300">
-                {archBadges[proj]}
-              </div>
-            )}
-          <a
-            href="#"
-            className="mt-auto inline-block border-t border-white/10 pt-4 text-sm font-semibold hover:text-blue-300"
-          >
-            Ver projeto →
-          </a>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const ConteudoExperiencia: React.FC<SecaoProps> = ({ perfil }) => (
-  <div className="relative z-20">
-    <div className="relative border-l border-white/20 pl-8">
-      <div className="mb-12 relative">
-        <div className="absolute -left-10.25 top-0.1 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss"></div>
-        <h3 className="text-xl font-bold">Scrum Master & Desenvolvedor Lead</h3>
-        <p className="text-white/50">ClinPlaY • 2026</p>
-        <p className="mt-4 text-white/80">
-          Liderança na arquitetura e codificação de sistema gamificado focado em
-          fisioterapia pélvica.
-        </p>
-      </div>
-    </div>
-
-    {(perfil === "baleia" || perfil === "mergulhador") && (
-      <div className="mt-12 rounded-2xl border border-purple-500/30 bg-purple-500/5 p-8">
-        <h3 className="mb-6 text-xl font-bold text-purple-300">
-          Resumo de Atuação Corporativa
-        </h3>
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div>
-            <p className="text-3xl font-bold text-white">4+</p>
-            <p className="mt-1 text-sm text-white/60">Pessoas na Equipe Base</p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-white">Escala</p>
-            <p className="mt-1 text-sm text-white/60">
-              Projetos para 100+ usuários
-            </p>
-          </div>
-          <div>
-            <p className="text-3xl font-bold text-white">Agile</p>
-            <p className="mt-1 text-sm text-white/60">Colaboração & Entregas</p>
-          </div>
-        </div>
-        <p className="mt-6 text-sm text-white/70 leading-relaxed border-t border-purple-500/20 pt-6">
-          Experiência prática com desenvolvimento em times horizontais, tomada
-          de decisão sob pressão e gerenciamento de escopo e prazo em projetos
-          de software voltado para uso cotidiano. Conhecimentos ágeis e de
-          projetos arquiteturais de software.
-        </p>
-      </div>
-    )}
-
-    {(perfil === "tubarao" || perfil === "mergulhador") && (
-      <div className="mt-24">
-        <h3 className="mb-10 text-2xl font-bold text-red-400">
-          Certificações Acadêmicas
-        </h3>
-        <div className="relative">
-          <div className="absolute left-0 top-2.25 hidden w-full border-t border-white/20 md:block"></div>
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-3 md:gap-8">
-            {[
-              {
-                titulo: "Grupo de Iniciação Científica",
-                inst: "Escola Estadual Visconde do Rio das Velhas",
-                ano: "2024",
-              },
-              {
-                titulo: "Apadrinhamento de Calouros",
-                inst: "Puc Minas",
-                ano: "2025",
-              },
-            ].map((cert, index) => (
-              <div key={index} className="relative pl-8 md:pl-0 md:pt-8">
-                <div className="absolute left-2.25 top-0 h-full border-l border-white/20 md:hidden"></div>
-                <div className="absolute left-0 top-0 h-5 w-5 rounded-full bg-white border-4 border-ocean-abyss md:left-0 md:-top-px"></div>
-                <h4 className="text-lg font-bold">{cert.titulo}</h4>
-                <p className="text-sm text-white/50">
-                  {cert.inst} • {cert.ano}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-);
-
-const ConteudoContato: React.FC<SecaoProps> = () => {
-  const [formData, setFormData] = React.useState({
-    nome: "",
-    email: "",
-    mensagem: "",
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const subject = encodeURIComponent(
-      `Contato via Portfólio - ${formData.nome}`,
-    );
-    const body = encodeURIComponent(
-      `Nome: ${formData.nome}\nEmail: ${formData.email}\n\nMensagem:\n${formData.mensagem}`,
-    );
-    window.open(
-      `mailto:isaiasalvesdesouzasantos@gmail.com?subject=${subject}&body=${body}`,
-    );
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  return (
-    <div className="flex flex-col md:flex-row gap-12 w-full rounded-3xl border border-white/10 bg-white/5 p-8 md:p-12 backdrop-blur-xl relative z-20">
-      {/* Coluna Esquerda: Formulário Funcional */}
-      <div className="flex-1">
-        <h2 className="mb-6 text-3xl font-bold">Chegamos ao fundo.</h2>
-        <p className="mb-8 text-white/60">
-          Sinta-se à vontade para enviar uma mensagem diretamente. Retornarei o
-          contato o mais breve possível.
-        </p>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <input
-            type="text"
-            name="nome"
-            required
-            placeholder="Seu Nome"
-            value={formData.nome}
-            onChange={handleChange}
-            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all"
-          />
-          <input
-            type="email"
-            name="email"
-            required
-            placeholder="Seu E-mail"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all"
-          />
-          <textarea
-            name="mensagem"
-            required
-            placeholder="Sua Mensagem..."
-            rows={4}
-            value={formData.mensagem}
-            onChange={handleChange}
-            className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white placeholder:text-white/30 focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400 transition-all resize-none"
-          ></textarea>
-
-          <button
-            type="submit"
-            className="flex items-center justify-center gap-2 w-full mt-2 rounded-lg bg-cyan-950/80 border border-cyan-500/50 px-6 py-4 font-bold text-cyan-400 transition-all hover:bg-cyan-900 hover:text-white hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]"
-          >
-            <FaPaperPlane />
-            ENVIAR TRANSMISSÃO
-          </button>
-        </form>
-      </div>
-
-      {/* Coluna Direita: Links Sociais */}
-      <div className="flex-1 flex flex-col items-center justify-center border-t md:border-t-0 md:border-l border-white/10 pt-10 md:pt-0 md:pl-12">
-        <h3 className="mb-6 text-xl font-semibold text-white/50">
-          Outros Canais
-        </h3>
-
-        <div className="flex flex-col w-full max-w-xs gap-4">
-          <a
-            href="mailto:isaiasalvesdesouzasantos@gmail.com"
-            className="flex items-center justify-center gap-3 w-full rounded-xl bg-white px-6 py-4 text-sm font-bold text-black transition-transform hover:scale-105"
-          >
-            E-MAIL DIRETO
-          </a>
-
-          <a
-            href="https://github.com/isaias-alves"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 w-full rounded-lg border border-white/20 bg-white/5 px-6 py-4 font-semibold transition-all hover:border-white/50 hover:bg-white/10 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]"
-          >
-            <FaGithub className="text-xl" />
-            GitHub
-          </a>
-
-          <a
-            href="https://linkedin.com/in/isaias-alves"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 w-full rounded-lg border border-blue-500/30 bg-blue-500/5 px-6 py-4 font-semibold text-blue-300 transition-all hover:border-blue-500/60 hover:bg-blue-500/10 hover:shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-          >
-            <FaLinkedin className="text-xl" />
-            LinkedIn
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Mapeamento referencial dos componentes
-const COMPONENTES_SECAO: Record<
-  string,
-  { titulo: string; component: React.FC<SecaoProps> }
-> = {
-  sobre: { titulo: "Sobre Mim", component: ConteudoSobre },
-  stacks: { titulo: "Stacks Tecnológicas", component: ConteudoStacks },
-  projetos: { titulo: "Projetos em Destaque", component: ConteudoProjetos },
-  experiencia: {
-    titulo: "Experiência Profissional",
-    component: ConteudoExperiencia,
-  },
-  contato: { titulo: "Contato", component: ConteudoContato },
-};
-
-export default function App() {
-  const [perfilAtivo, setPerfilAtivo] = useState<PerfilAcesso | null>(null);
+function Portfolio({
+  perfil,
+  onSair,
+}: {
+  perfil: PerfilAcesso;
+  onSair: () => void;
+}) {
   const [anomaliaAtiva, setAnomaliaAtiva] = useState(false);
+  const { ordem, nome: nomePerfil, cor } = obterPerfil(perfil);
 
-  if (!perfilAtivo) {
-    return <SonarSelector onSelectProfile={setPerfilAtivo} />;
-  }
-
-  const ordemAtual = ordemPerfis[perfilAtivo];
+  const ativarAnomalia = useCallback(() => setAnomaliaAtiva(true), []);
 
   return (
     <div className="relative w-full overflow-x-hidden font-sans text-white">
+      {/* Camadas ambientais e overlays ficam FORA do wrapper animado: um
+          ancestral com `transform` ou `filter` vira containing block e
+          reancora todo descendente `position: fixed` nele, em vez de na
+          viewport. Era o que jogava o vídeo da anomalia para o meio da
+          página, e o que deslocava HUD, lanterna e partículas durante a
+          animação de chegada. */}
       {anomaliaAtiva ? (
         <video
           autoPlay
           controls={false}
-          className="fixed inset-0 w-full h-full object-cover z-0 opacity-80"
+          className="fixed inset-0 z-0 h-full w-full object-cover opacity-80"
           style={{ mixBlendMode: "multiply" }}
           src="/bad-apple.mp4"
           onEnded={() => setAnomaliaAtiva(false)}
@@ -627,84 +64,124 @@ export default function App() {
         <AbyssalSilhouettes />
       )}
 
-      <BackgroundEffects />
+      <div className="sunlight-glow" aria-hidden="true" />
+      <Superficie />
+      <VidaMarinha />
+      <AmbienteMarinho />
       <AbyssalLantern />
       <DepthHUD />
-      <Sidebar perfil={perfilAtivo} />
+      <Sidebar perfil={perfil} />
+
+      {anomaliaAtiva && (
+        <button
+          type="button"
+          onClick={() => setAnomaliaAtiva(false)}
+          className="fixed right-8 top-8 z-50 rounded bg-red-900/60 px-4 py-2 font-mono text-xs text-red-200 hover:bg-red-900"
+        >
+          [ PURGAR ANOMALIA ]
+        </button>
+      )}
 
       <main
-        className={`mx-auto max-w-6xl px-6 py-12 md:pl-48 md:pr-40 relative z-20 transition-all duration-1000 ${anomaliaAtiva ? "bg-transparent drop-shadow-2xl" : ""}`}
+        className={`entrada-mergulho relative z-20 mx-auto max-w-6xl px-6 py-12 transition-[filter] duration-1000 md:pl-48 md:pr-40 ${
+          anomaliaAtiva ? "bg-transparent drop-shadow-2xl" : ""
+        }`}
       >
-        {anomaliaAtiva && (
-          <button
-            onClick={() => setAnomaliaAtiva(false)}
-            className="fixed top-8 right-8 z-50 rounded bg-red-900/50 px-4 py-2 font-mono text-xs text-red-300 hover:bg-red-900"
-          >
-            [ PURGAR ANOMALIA ]
-          </button>
-        )}
-
-        <header className="mb-32 mt-12 border-b border-white/20 pb-8 relative z-20">
-          <p className="mb-2 text-sm uppercase tracking-widest text-white/50">
-            Acesso Autorizado:{" "}
-            <DecryptedText text={perfilAtivo.toUpperCase()} delay={300} />
+        <header className="relative z-20 mb-24 mt-12 border-b border-white/20 pb-8">
+          <p className="mb-2 flex items-center gap-2 font-mono text-xs uppercase tracking-[0.25em] text-white/50">
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ background: cor, boxShadow: `0 0 8px ${cor}` }}
+              aria-hidden="true"
+            />
+            Rota ativa: <DecryptedText text={nomePerfil} delay={300} />
           </p>
 
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mt-2">
-            <h1 className="text-4xl font-bold md:text-6xl drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+          <div className="mt-2 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <h1 className="text-4xl font-bold drop-shadow-[0_0_20px_rgba(255,255,255,0.2)] md:text-6xl">
               <DecryptedText text="Abyssal End" delay={100} />
             </h1>
 
             <button
-              onClick={() => {
-                setPerfilAtivo(null);
-                setAnomaliaAtiva(false);
-              }}
-              className="group relative flex items-center gap-3 rounded-lg border-2 border-cyan-500/50 bg-cyan-950/50 px-6 py-3 font-mono text-sm font-bold text-cyan-400 backdrop-blur-md transition-all hover:border-cyan-400 hover:bg-cyan-900 hover:text-white hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]"
+              type="button"
+              onClick={onSair}
+              className="group flex items-center gap-3 rounded-lg border-2 border-cyan-500/50 bg-cyan-950/50 px-6 py-3 font-mono text-sm font-bold text-cyan-300 backdrop-blur-md transition-all hover:border-cyan-400 hover:bg-cyan-900 hover:text-white hover:shadow-[0_0_20px_rgba(34,211,238,0.4)]"
             >
               <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75"></span>
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-500 group-hover:bg-white transition-colors"></span>
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cyan-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-cyan-500 transition-colors group-hover:bg-white" />
               </span>
-              [ RESETAR SONAR ]
+              [ EMERGIR ]
             </button>
           </div>
         </header>
 
-        {ordemAtual.map((chaveSecao, index) => {
-          const SecaoAtual = COMPONENTES_SECAO[chaveSecao];
-          const SecaoComponente = SecaoAtual.component;
-          const metadadosZona = ZONAS_OCEANO[index];
-          const idFixoMaritimo = IDs_MARITIMOS[index];
-          const cascadeDelay = 500 + index * 200;
+        {ordem.map((chave, indice) => {
+          const zona = ZONAS[indice];
+          const meta = SECOES[chave];
+          const Secao = COMPONENTES_SECAO[chave];
+          const atrasoCascata = 400 + indice * 150;
 
           return (
-            <section
-              id={idFixoMaritimo}
-              key={idFixoMaritimo}
-              className={`min-h-[80vh] pt-20 transition-opacity duration-1000 ${anomaliaAtiva ? "opacity-80" : "opacity-100"}`}
-            >
-              <div className="mb-8 inline-block rounded-full bg-white/10 px-4 py-1 text-sm font-mono tracking-wide uppercase backdrop-blur-sm">
-                <DecryptedText
-                  text={`ZONA ${idFixoMaritimo} / ${metadadosZona.prof}`}
-                  delay={cascadeDelay}
-                  speed={15}
-                />
-              </div>
-              <h2 className="mb-12 text-3xl font-bold">
-                <DecryptedText
-                  text={SecaoAtual.titulo}
-                  delay={cascadeDelay + 150}
-                />
-              </h2>
-              <SecaoComponente
-                perfil={perfilAtivo}
-                onAtivarAnomalia={() => setAnomaliaAtiva(true)}
-              />
-            </section>
+            <Fragment key={zona.id}>
+              {indice > 0 && <Termoclina zona={zona} />}
+
+              <section
+                id={zona.id}
+                data-material={zona.material}
+                aria-labelledby={`titulo-${zona.id}`}
+                className={`min-h-[80vh] scroll-mt-24 pt-16 transition-opacity duration-1000 ${
+                  anomaliaAtiva ? "opacity-80" : "opacity-100"
+                }`}
+              >
+                <p className="material-plano mb-6 inline-block rounded-full px-4 py-1 font-mono text-xs uppercase tracking-wide">
+                  <DecryptedText
+                    text={`Zona ${zona.nome} / ${zona.faixa}`}
+                    delay={atrasoCascata}
+                    speed={15}
+                  />
+                </p>
+
+                <h2
+                  id={`titulo-${zona.id}`}
+                  className="text-3xl font-bold md:text-4xl"
+                >
+                  <DecryptedText
+                    text={meta.titulo}
+                    delay={atrasoCascata + 150}
+                  />
+                </h2>
+                <p className="mb-10 mt-2 max-w-xl tenue">{meta.legenda}</p>
+
+                <Secao perfil={perfil} onAtivarAnomalia={ativarAnomalia} />
+              </section>
+            </Fragment>
           );
         })}
+
+        <RodapeZona />
       </main>
     </div>
   );
+}
+
+export default function App() {
+  const [perfilAtivo, setPerfilAtivo] = useState<PerfilAcesso | null>(null);
+
+  // A descida sempre começa na superfície, mesmo ao trocar de rota.
+  useEffect(() => {
+    if (!perfilAtivo) return;
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [perfilAtivo]);
+
+  const emergir = useCallback(() => {
+    reiniciarProfundidade();
+    setPerfilAtivo(null);
+  }, []);
+
+  if (!perfilAtivo) {
+    return <PainelSubmarino onSelectProfile={setPerfilAtivo} />;
+  }
+
+  return <Portfolio perfil={perfilAtivo} onSair={emergir} />;
 }

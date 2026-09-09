@@ -1,34 +1,70 @@
 @import "tailwindcss";
 
 @theme {
-    --color-ocean-surface: #0077be;
-    --color-ocean-twilight: #004b87;
-    --color-ocean-midnight: #002a5c;
-    --color-ocean-abyss: #00112b;
-    --color-ocean-trench: #000000;
+    /* Paleta oceânica — dessaturada em relação à original para afastar o
+       azul-de-logotipo e aproximar da água real vista de dentro. */
+    --color-ocean-surface: #0c6f9f;
+    --color-ocean-twilight: #08496f;
+    --color-ocean-midnight: #052b48;
+    --color-ocean-abyss: #011226;
+    --color-ocean-trench: #000206;
+
+    --color-sonar: #22d3ee;
+    --color-sonar-deep: #0e7490;
+
+    --font-sans:
+        "Space Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-mono:
+        "JetBrains Mono", ui-monospace, "SFMono-Regular", "Menlo", monospace;
+}
+
+/* Razão de descida (0 = superfície, 1 = fossa). Publicada a cada frame por
+   src/lib/profundidade.ts e consumida só pelo CSS: os efeitos ambientais
+   reagem ao scroll sem custar um render do React.
+   Registrada com @property para ser interpolada como número já parseado —
+   sem isso o motor reprocessa o token a cada frame. */
+@property --profundidade {
+    syntax: "<number>";
+    inherits: true;
+    initial-value: 0;
+}
+
+:root {
+    --profundidade: 0;
+}
+
+html {
+    scroll-behavior: smooth;
 }
 
 html,
 body {
-    scroll-behavior: smooth;
     overflow-x: hidden;
 }
 
 body {
+    margin: 0;
+    padding: 0;
+    color: white;
     background: linear-gradient(
         to bottom,
         var(--color-ocean-surface) 0%,
-        var(--color-ocean-twilight) 25%,
-        var(--color-ocean-midnight) 50%,
-        var(--color-ocean-abyss) 75%,
+        var(--color-ocean-twilight) 22%,
+        var(--color-ocean-midnight) 46%,
+        var(--color-ocean-abyss) 72%,
         var(--color-ocean-trench) 100%
     );
-    color: white;
-    margin: 0;
-    padding: 0;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Customização da Barra de Rolagem */
+:focus-visible {
+    outline: 2px solid var(--color-sonar);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* ── Barra de rolagem ─────────────────────────────────────────────────── */
+
 ::-webkit-scrollbar {
     width: 10px;
 }
@@ -36,15 +72,102 @@ body {
     background: var(--color-ocean-trench);
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(0, 119, 190, 0.4);
+    background: rgba(34, 211, 238, 0.35);
     border-radius: 8px;
     border: 2px solid var(--color-ocean-trench);
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 119, 190, 0.8);
+    background: rgba(34, 211, 238, 0.7);
 }
 
-/* Efeito de Iluminação no Topo (Caustics) */
+/* ── Materiais por zona ───────────────────────────────────────────────────
+   Cada <section> declara `data-material`; todo card interno usa `.material`
+   e herda as variáveis. É o que faz a superfície parecer vidro iluminado e
+   o abismo parecer um instrumento aceso por dentro — em vez de o site
+   inteiro ser o mesmo `bg-white/5` com o fundo mais escuro.
+   Bônus: nas zonas profundas o backdrop-filter é desligado, o que remove
+   as camadas de composição mais caras da página.                          */
+
+[data-material="superficie"] {
+    --material-fundo: rgba(255, 255, 255, 0.07);
+    --material-borda: rgba(255, 255, 255, 0.16);
+    --material-filtro: blur(14px);
+    --material-sombra: 0 8px 32px rgba(0, 0, 0, 0.18);
+    --material-realce: rgba(255, 255, 255, 0.92);
+    --material-tenue: rgba(255, 255, 255, 0.62);
+}
+
+[data-material="crepusculo"] {
+    --material-fundo: rgba(5, 43, 72, 0.5);
+    --material-borda: rgba(125, 205, 235, 0.22);
+    --material-filtro: blur(10px);
+    --material-sombra: 0 8px 32px rgba(0, 0, 0, 0.35);
+    --material-realce: rgba(196, 232, 246, 0.95);
+    --material-tenue: rgba(196, 232, 246, 0.6);
+}
+
+[data-material="abismo"] {
+    --material-fundo: rgba(2, 15, 32, 0.78);
+    --material-borda: rgba(34, 211, 238, 0.22);
+    --material-filtro: none;
+    --material-sombra:
+        inset 0 1px 0 rgba(34, 211, 238, 0.12), 0 0 28px rgba(0, 0, 0, 0.55);
+    --material-realce: rgba(103, 232, 249, 0.95);
+    --material-tenue: rgba(186, 230, 253, 0.55);
+}
+
+[data-material="trincheira"] {
+    --material-fundo: rgba(0, 4, 10, 0.88);
+    --material-borda: rgba(34, 211, 238, 0.3);
+    --material-filtro: none;
+    --material-sombra:
+        inset 0 0 44px rgba(34, 211, 238, 0.07), 0 0 40px rgba(0, 0, 0, 0.75);
+    --material-realce: rgba(165, 243, 252, 1);
+    --material-tenue: rgba(186, 230, 253, 0.5);
+}
+
+.material,
+.material-plano {
+    background: var(--material-fundo, rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--material-borda, rgba(255, 255, 255, 0.1));
+    box-shadow: var(--material-sombra, none);
+    transition:
+        background-color 600ms ease,
+        border-color 600ms ease,
+        transform 300ms ease;
+}
+
+/* `backdrop-filter` é o efeito mais caro da folha: cada elemento que o usa
+   vira uma camada que reamostra tudo que está atrás dele. Só os cards
+   grandes o recebem — chips, badges e contadores usam `.material-plano`,
+   visualmente idêntico à distância e sem custo de composição. */
+.material {
+    backdrop-filter: var(--material-filtro, blur(12px));
+}
+
+.realce {
+    color: var(--material-realce, #fff);
+}
+
+.tenue {
+    color: var(--material-tenue, rgba(255, 255, 255, 0.6));
+}
+
+/* Etiqueta técnica reaproveitada em stacks, projetos e badges de zona. */
+.etiqueta {
+    border: 1px solid var(--material-borda, rgba(255, 255, 255, 0.14));
+    background: rgba(255, 255, 255, 0.04);
+    transition:
+        background-color 200ms ease,
+        border-color 200ms ease;
+}
+.etiqueta:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--material-realce, rgba(255, 255, 255, 0.4));
+}
+
+/* ── Luz do sol (só existe perto da superfície) ───────────────────────── */
+
 .sunlight-glow {
     position: absolute;
     top: 0;
@@ -54,33 +177,108 @@ body {
     height: 1200px;
     background: radial-gradient(
         ellipse at top,
-        rgba(0, 119, 190, 0.3) 0%,
+        rgba(120, 200, 235, 0.28) 0%,
         transparent 70%
     );
+    opacity: clamp(0, calc(1 - var(--profundidade) * 3), 1);
     pointer-events: none;
     z-index: 0;
 }
 
-/* Animação Orgânica das Bolhas */
-@keyframes float-up {
+/* ── Lanterna do mergulhador ──────────────────────────────────────────────
+   Na superfície é irrelevante (já há sol); no abismo é a única fonte de luz.
+   A opacidade sobe com a profundidade em vez de ficar constante.          */
+
+.lanterna {
+    opacity: clamp(0, calc(var(--profundidade) * 1.9 - 0.1), 1);
+    transition: opacity 400ms linear;
+}
+
+/* Sem cursor não há lanterna a seguir, e `mix-blend-mode` num elemento
+   deste tamanho custa uma composição cara por frame. */
+@media (hover: none), (pointer: coarse) {
+    .lanterna {
+        display: none;
+    }
+}
+
+/* ── Camadas de partículas ────────────────────────────────────────────────
+   As três camadas ficam sempre montadas; quem decide qual aparece é o
+   atributo `data-zona` do <html>, escrito pelo monitor de profundidade.
+   Trocar por opacidade evita remontar elementos (o que reiniciaria as
+   animações e cortaria o movimento no meio).                              */
+
+.camada {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 1600ms ease;
+    z-index: 10;
+    /* Camada invisível não anima. Sem isto, as 40 partículas de neve
+       marinha seguiam rodando na superfície, onde a camada está a
+       `opacity: 0` — trabalho de composição inteiramente descartado.
+       A propriedade herda, então cada partícula filha a consome. */
+    --estado-particula: paused;
+}
+
+
+:root[data-zona="0"] .camada-bolhas,
+:root[data-zona="1"] .camada-bolhas {
+    opacity: 1;
+    --estado-particula: running;
+}
+
+:root[data-zona="2"] .camada-bolhas {
+    --estado-particula: running;
+}
+
+/* Revelar a neve marinha já na zona 0 foi tentado e desfeito: a 18% ela
+   some contra a água clara da superfície, e ainda assim põe 40 partículas
+   para animar e compor justamente na zona mais cara da página — medi um
+   passo inteiro de vsync (33ms → 50ms de piso, sem GPU). Continua começando
+   na zona 1, onde a água escurece o bastante para ela aparecer. */
+:root[data-zona="1"] .camada-neve {
+    opacity: 0.35;
+    --estado-particula: running;
+}
+:root[data-zona="2"] .camada-neve,
+:root[data-zona="3"] .camada-neve {
+    opacity: 1;
+    --estado-particula: running;
+}
+:root[data-zona="4"] .camada-neve {
+    opacity: 0.55;
+    --estado-particula: running;
+}
+
+:root[data-zona="3"] .camada-biolum {
+    opacity: 0.65;
+    --estado-particula: running;
+}
+:root[data-zona="4"] .camada-biolum {
+    opacity: 1;
+    --estado-particula: running;
+}
+
+@keyframes subir {
     0% {
-        transform: translateY(120vh) translateX(0px) scale(0.8);
+        transform: translate3d(0, 110vh, 0) scale(0.8);
         opacity: 0;
     }
-    20% {
-        opacity: 0.6;
-    }
+    20%,
     80% {
-        opacity: 0.6;
+        opacity: 0.55;
     }
     100% {
-        transform: translateY(-20vh) translateX(40px) scale(1.2);
+        transform: translate3d(var(--deriva, 40px), -20vh, 0) scale(1.2);
         opacity: 0;
     }
 }
 
-.bubble {
-    position: fixed;
+.bolha {
+    position: absolute;
     border-radius: 50%;
     background: radial-gradient(
         circle at 30% 30%,
@@ -88,9 +286,430 @@ body {
         rgba(255, 255, 255, 0.05)
     );
     border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(3px);
-    animation: float-up infinite ease-in;
+    animation: subir infinite ease-in both;
+}
+
+/* Neve marinha: detritos que descem devagar. É o detalhe que qualquer
+   imagem real de mar profundo tem — e que bolha subindo a 6.000m não tem. */
+@keyframes afundar {
+    0% {
+        transform: translate3d(0, -12vh, 0);
+        opacity: 0;
+    }
+    12%,
+    88% {
+        opacity: var(--brilho, 0.5);
+    }
+    100% {
+        transform: translate3d(var(--deriva, 14px), 112vh, 0);
+        opacity: 0;
+    }
+}
+
+.floco {
+    position: absolute;
+    top: 0;
+    border-radius: 50%;
+    background: #dff3ff;
+    animation: afundar infinite linear both;
+}
+
+@keyframes cintilar {
+    0%,
+    100% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.faisca {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+    animation: cintilar infinite ease-in-out both;
+}
+
+/* Precisa vir DEPOIS de .bolha/.floco/.faisca: o atalho `animation` daquelas
+   regras reinicia `animation-play-state` para `running`, e com a mesma
+   especificidade quem vence é a última declaração da folha. */
+.camada > * {
+    animation-play-state: var(--estado-particula);
+}
+
+/* ── Termoclina (marco de travessia entre zonas) ──────────────────────── */
+
+@keyframes correnteza {
+    to {
+        stroke-dashoffset: -240;
+    }
+}
+
+.termoclina-linha {
+    stroke-dasharray: 6 14;
+    animation: correnteza 6s linear infinite;
+}
+
+/* `stroke-dashoffset` repinta a cada frame — não é composto na GPU.
+   Com content-visibility o navegador descarta render e animação das
+   termoclinas fora da viewport, e há quatro delas na página. */
+.termoclina {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 190px;
+}
+
+/* ── Régua de profundidade do HUD ─────────────────────────────────────────
+   O marcador é posicionado direto por `--profundidade`, em `transform`.
+   Antes o JS escrevia `style.top` a cada frame, o que forçava layout;
+   agora não há escrita nenhuma e a propriedade animada é composta.      */
+
+.regua-profundidade {
+    --altura-regua: 14rem;
+    height: var(--altura-regua);
+}
+
+.marcador-profundidade {
+    top: 0;
+    transform: translateY(calc(var(--profundidade) * var(--altura-regua)))
+        translateY(-50%);
+}
+
+/* ── Entrada no portfólio, após o mergulho ────────────────────────────── */
+
+@keyframes submergir {
+    from {
+        opacity: 0;
+        transform: translateY(-28px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.entrada-mergulho {
+    animation: submergir 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Superfície: o teto do oceano ─────────────────────────────────────────
+   Ondas vistas por baixo e os feixes de sol que passam por elas. Ambos
+   `fixed` e ambos desaparecendo com `--profundidade`: a superfície não é o
+   topo da página, é um lugar de onde se afasta.
+
+   As duas camadas pausam a animação fora da zona 0. Um `repeating-linear-
+   gradient` deste tamanho é a maior superfície pintada da folha; mantê-lo
+   animando a 6.000m seria trabalho de composição por frame para um
+   elemento que já está a `opacity: 0`.                                    */
+
+.raios-solares,
+.superficie {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
     pointer-events: none;
-    z-index: 10;
-    animation-fill-mode: both;
+    overflow: hidden;
+    transition: opacity 500ms linear;
+}
+
+.raios-solares {
+    height: 72vh;
+    z-index: 1;
+    opacity: clamp(0, calc(1 - var(--profundidade) * 4.5), 1);
+}
+
+/* Dimensionado para cobrir EXATAMENTE a deriva do keyframe (±3% e um
+   scaleX de 1.07), e nada além disso. Este é o maior elemento pintado da
+   folha; a primeira versão media 180%x150% da viewport — quase três telas
+   de gradiente para esconder uma borda que se move três por cento.
+
+   A máscara também mora AQUI, e não no contentor, embora o recorte
+   desejado seja o mesmo. No contentor ela cai sobre dois filhos animados,
+   e o compositor refaz a passagem de máscara a cada quadro. No próprio
+   elemento animado, gradiente e máscara rasterizam juntos uma única vez e
+   a animação vira transform puro. Funciona porque a máscara só varia em Y
+   e a animação só mexe em X: deslizar ou escalar horizontalmente um
+   gradiente vertical não muda um pixel dele. Medido: 83ms → 67ms por
+   quadro na superfície, sem diferença visual. */
+.raios {
+    position: absolute;
+    top: -7%;
+    left: -7%;
+    width: 114%;
+    height: 118%;
+    -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 4%,
+        #000 20%,
+        #000 43%,
+        transparent 84%
+    );
+    mask-image: linear-gradient(
+        to bottom,
+        transparent 4%,
+        #000 20%,
+        #000 43%,
+        transparent 84%
+    );
+    animation: derivar-raios 19s ease-in-out infinite alternate;
+    animation-play-state: paused;
+}
+
+/* Dois ângulos próximos, nunca iguais: uma listra só lê como gradiente;
+   duas se cruzando lêem como luz atravessando água agitada. */
+.raios-largos {
+    background: repeating-linear-gradient(
+        96deg,
+        rgba(198, 240, 255, 0) 0px,
+        rgba(198, 240, 255, 0) 64px,
+        rgba(198, 240, 255, 0.1) 132px,
+        rgba(198, 240, 255, 0.14) 158px,
+        rgba(198, 240, 255, 0) 236px,
+        rgba(198, 240, 255, 0) 330px
+    );
+}
+
+/* A segunda trama existe só para cruzar com a primeira. Fundir as duas num
+   elemento só economiza um passo de vsync (67ms → 50ms medidos aqui, sem
+   GPU), mas as duas passam a derivar em bloco e o brilho morre: é o
+   deslizamento de uma trama contra a outra que lê como luz atravessando
+   água em movimento. Congelar a animação de uma delas não recupera nada —
+   o custo é ter duas camadas compostas, não o movimento. Fica proposital. */
+.raios-finos {
+    background: repeating-linear-gradient(
+        83deg,
+        rgba(224, 250, 255, 0) 0px,
+        rgba(224, 250, 255, 0) 30px,
+        rgba(224, 250, 255, 0.07) 62px,
+        rgba(224, 250, 255, 0) 104px,
+        rgba(224, 250, 255, 0) 190px
+    );
+    animation-duration: 27s;
+    animation-direction: alternate-reverse;
+}
+
+@keyframes derivar-raios {
+    from {
+        transform: translate3d(-3%, 0, 0) scaleX(1);
+    }
+    to {
+        transform: translate3d(3%, 0, 0) scaleX(1.07);
+    }
+}
+
+.superficie {
+    height: 16vh;
+    min-height: 88px;
+    z-index: 2;
+    opacity: clamp(0, calc(1 - var(--profundidade) * 7), 1);
+}
+
+/* Largura dobrada e deslocamento de metade dela: o path cobre dois
+   períodos completos da onda, então meia largura é exatamente um período
+   e a emenda cai sobre si mesma. */
+.onda {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    animation: mare 21s linear infinite;
+    animation-play-state: paused;
+}
+
+.onda-fundo {
+    fill: rgba(150, 222, 250, 0.13);
+}
+
+.onda-frente {
+    fill: rgba(196, 240, 255, 0.2);
+    animation-duration: 14s;
+    animation-direction: reverse;
+}
+
+@keyframes mare {
+    to {
+        transform: translate3d(-50%, 0, 0);
+    }
+}
+
+/* A água logo abaixo da interface ar/água é a mais clara da coluna. Sem
+   esta faixa as ondas são duas formas azuis; com ela, viram um limite. */
+.brilho-superficie {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(226, 249, 255, 0.16),
+        rgba(226, 249, 255, 0)
+    );
+}
+
+:root[data-zona="0"] .raios,
+:root[data-zona="0"] .onda {
+    animation-play-state: running;
+}
+
+/* ── Fauna atravessando o fundo ───────────────────────────────────────────
+   Mesmo contrato das partículas: as bandas ficam montadas e o `data-zona`
+   decide qual aparece.
+
+   A travessia horizontal e o bamboleio vertical vivem em elementos
+   separados de propósito. São duas animações sobre `transform`, e no mesmo
+   nó a segunda simplesmente sobrescreveria a primeira — o peixe balançaria
+   parado no canto esquerdo em vez de atravessar a tela.                   */
+
+.camada-vida {
+    z-index: 5;
+}
+
+.criatura {
+    position: absolute;
+    left: 0;
+    top: 0;
+    animation: travessia 60s linear infinite both;
+}
+
+/* `--sentido: -1` espelha a silhueta; `reverse` faz a mesma travessia no
+   rumo oposto. Juntos, uma única árvore de SVG serve aos dois sentidos —
+   sem duplicar path nem manter um segundo keyframe em espelho. */
+@keyframes travessia {
+    from {
+        transform: translate3d(-40vw, 0, 0) scaleX(var(--sentido, 1));
+    }
+    to {
+        transform: translate3d(140vw, 0, 0) scaleX(var(--sentido, 1));
+    }
+}
+
+.criatura-balanco {
+    animation: bambolear 8s ease-in-out infinite alternate;
+}
+
+@keyframes bambolear {
+    from {
+        transform: translateY(-1.1vh) rotate(-2.5deg);
+    }
+    to {
+        transform: translateY(1.1vh) rotate(2.5deg);
+    }
+}
+
+/* A transparência da fauna vive em `opacity`, NUNCA no alfa da cor.
+   Cada bicho é um punhado de paths sobrepostos — nadadeira entra por baixo
+   do casco, cauda cruza o corpo. Com alfa na cor, cada sobreposição soma e
+   as emendas viram vincos escuros: a tartaruga lia como quatro lóbulos
+   soltos, não como um animal. `opacity` no elemento achata a subárvore
+   inteira ANTES de aplicar a transparência, então a silhueta sai chapada.
+   Custo zero: o nó já é uma camada própria por causa do `transform`. */
+.camada-vida .criatura {
+    opacity: 0.09;
+}
+
+/* Rasa: a luz vem de cima, então o bicho aparece recortado CONTRA ela —
+   silhueta escura. É o oposto do abismo, onde só se enxerga o que brilha. */
+.camada-vida-rasa {
+    color: #01131f;
+}
+.camada-vida-rasa .criatura {
+    opacity: 0.5;
+}
+
+.camada-vida-media {
+    color: #a8dcf5;
+}
+
+.camada-vida-funda {
+    color: #82e4f6;
+}
+.camada-vida-funda .criatura {
+    opacity: 0.11;
+}
+
+/* A isca do peixe-pescador é o único ponto da fauna que EMITE luz em vez
+   de bloqueá-la, então ignora a cor da banda e acende sozinha. */
+.isca {
+    fill: #d8fbff;
+    filter: drop-shadow(0 0 6px #67e8f9);
+    animation: pulsar-isca 2.6s ease-in-out infinite;
+}
+
+@keyframes pulsar-isca {
+    0%,
+    100% {
+        opacity: 0.45;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+:root[data-zona="0"] .camada-vida-rasa {
+    opacity: 0.9;
+}
+:root[data-zona="1"] .camada-vida-rasa {
+    opacity: 0.4;
+}
+
+:root[data-zona="1"] .camada-vida-media {
+    opacity: 0.85;
+}
+:root[data-zona="2"] .camada-vida-media {
+    opacity: 1;
+}
+:root[data-zona="3"] .camada-vida-media {
+    opacity: 0.3;
+}
+
+:root[data-zona="2"] .camada-vida-funda {
+    opacity: 0.35;
+}
+:root[data-zona="3"] .camada-vida-funda,
+:root[data-zona="4"] .camada-vida-funda {
+    opacity: 1;
+}
+
+/* Precisa vir DEPOIS das regras de `animation` acima: o atalho reinicia
+   `animation-play-state` para `running`, e entre declarações de mesma
+   especificidade vence a última da folha. Mesmo motivo de `.camada > *`. */
+.camada-vida .criatura,
+.camada-vida .criatura-balanco,
+.camada-vida .isca {
+    animation-play-state: var(--estado-particula);
+}
+
+:root[data-zona="0"] .camada-vida-rasa,
+:root[data-zona="1"] .camada-vida-rasa,
+:root[data-zona="1"] .camada-vida-media,
+:root[data-zona="2"] .camada-vida-media,
+:root[data-zona="3"] .camada-vida-media,
+:root[data-zona="2"] .camada-vida-funda,
+:root[data-zona="3"] .camada-vida-funda,
+:root[data-zona="4"] .camada-vida-funda {
+    --estado-particula: running;
+}
+
+/* ── Movimento reduzido ───────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+    }
+
+    .camada {
+        display: none;
+    }
 }

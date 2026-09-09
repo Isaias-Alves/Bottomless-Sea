@@ -1,0 +1,698 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Console de mergulho — tela de entrada.
+
+   Toda a moldura é DOM + CSS (nada de canvas/WebGL): gradientes fazem o
+   metal, um pseudo-elemento faz o reflexo do vidro e a varredura do sonar
+   é uma única animação de rotação. O detalhe que sustenta a ilusão é o
+   `--fase` de cada blip: ele acende quando o feixe passa por cima, em vez
+   de piscar sozinho em loop.
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Coluna d'água, e não preto: o topo é mais claro porque a superfície
+   está logo acima — os instrumentos ao lado afirmam 2,4 m e 1.2 ATM, e o
+   fundo precisa concordar com eles. A grade de 44px continua por cima,
+   porque ela é do vidro do console, não da água. */
+.tela {
+    background-color: #01060d;
+    background-image:
+        linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+        radial-gradient(
+            ellipse 120% 70% at 50% 42%,
+            rgba(14, 118, 168, 0.18) 0%,
+            transparent 70%
+        ),
+        linear-gradient(
+            to bottom,
+            #0e4763 0%,
+            #073042 26%,
+            #031a29 55%,
+            #010c15 100%
+        );
+    background-size:
+        44px 44px,
+        44px 44px,
+        100% 100%,
+        100% 100%;
+    background-position: center center;
+}
+
+.scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 20, 40, 0.32) 2px,
+        rgba(0, 20, 40, 0.32) 4px
+    );
+    pointer-events: none;
+    z-index: 40;
+}
+
+/* Vinheta + reflexo diagonal: a "abóbada de vidro" sobre o console. */
+.vidro {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 41;
+    background:
+        linear-gradient(
+            118deg,
+            rgba(255, 255, 255, 0.05) 0%,
+            transparent 28%,
+            transparent 72%,
+            rgba(255, 255, 255, 0.02) 100%
+        ),
+        /* Aberta em 52%/0.5, e não 42%/0.75: a vinheta escurece as bordas,
+           que é justamente a faixa onde a água do fundo aparece — fechada
+           demais, ela apagava o mar que existe para ser visto. O console
+           continua destacado pelo próprio fundo escuro que ele carrega. */
+        radial-gradient(
+            ellipse at center,
+            transparent 52%,
+            rgba(0, 0, 0, 0.5) 100%
+        );
+}
+
+.console {
+    position: relative;
+    border-radius: 28px;
+    border: 1px solid rgba(125, 190, 220, 0.16);
+    background:
+        linear-gradient(
+            160deg,
+            rgba(16, 34, 50, 0.92) 0%,
+            rgba(7, 18, 30, 0.94) 45%,
+            rgba(3, 10, 18, 0.96) 100%
+        );
+    box-shadow:
+        0 40px 120px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 0 60px rgba(0, 0, 0, 0.5);
+    transition:
+        transform 900ms cubic-bezier(0.55, 0, 0.35, 1),
+        opacity 900ms ease,
+        filter 900ms ease;
+}
+
+/* Mergulho iniciado: o console afunda e sai de cena. */
+.submergindo {
+    transform: translateY(6vh) scale(0.94);
+    opacity: 0;
+    filter: blur(8px);
+}
+
+.rebite {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: radial-gradient(
+        circle at 30% 30%,
+        rgba(190, 220, 240, 0.55),
+        rgba(20, 40, 58, 0.9)
+    );
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.8);
+}
+
+/* Alagamento da comporta durante a transição de entrada. */
+.alagamento {
+    position: absolute;
+    inset: 0;
+    z-index: 45;
+    pointer-events: none;
+    background: linear-gradient(
+        to top,
+        var(--color-ocean-midnight, #052b48),
+        var(--color-ocean-abyss, #011226)
+    );
+    transform: translateY(100%);
+    animation: alagar 1100ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes alagar {
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* ── Sonar ───────────────────────────────────────────────────────────── */
+
+.radar {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(34, 211, 238, 0.35);
+    background: radial-gradient(
+        circle,
+        rgba(5, 43, 72, 0.85) 0%,
+        rgba(1, 12, 26, 0.95) 100%
+    );
+    overflow: hidden;
+    box-shadow:
+        0 0 70px rgba(34, 211, 238, 0.14),
+        inset 0 0 50px rgba(0, 0, 0, 0.6);
+}
+
+.grade {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background-image:
+        radial-gradient(
+            circle,
+            transparent 24%,
+            rgba(34, 211, 238, 0.18) 25%,
+            transparent 26%
+        ),
+        radial-gradient(
+            circle,
+            transparent 49%,
+            rgba(34, 211, 238, 0.18) 50%,
+            transparent 51%
+        ),
+        radial-gradient(
+            circle,
+            transparent 74%,
+            rgba(34, 211, 238, 0.18) 75%,
+            transparent 76%
+        );
+}
+
+.varredura {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(
+        from 0deg,
+        transparent 68%,
+        rgba(34, 211, 238, 0.06) 88%,
+        rgba(34, 211, 238, 0.55) 100%
+    );
+    animation: girar var(--varredura) linear infinite;
+}
+
+@keyframes girar {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Eco: o blip decai a partir do instante em que o feixe o atinge.
+   `--fase` é calculado no componente a partir do rumo do contato. */
+@keyframes eco {
+    0% {
+        opacity: 1;
+        transform: scale(1.15);
+    }
+    12% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    70% {
+        opacity: 0.3;
+    }
+    100% {
+        opacity: 0.14;
+        transform: scale(0.92);
+    }
+}
+
+.eco {
+    filter: drop-shadow(0 0 8px currentColor);
+    animation: eco var(--varredura) linear infinite both;
+    animation-delay: var(--fase);
+}
+
+@keyframes onda {
+    0% {
+        transform: scale(0.35);
+        opacity: 0.85;
+    }
+    100% {
+        transform: scale(3);
+        opacity: 0;
+    }
+}
+
+.onda {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    animation: onda var(--varredura) ease-out infinite both;
+    animation-delay: var(--fase);
+}
+
+/* Contato destacado pela lista lateral: sai do ciclo e fica aceso.
+   `animation: none` em vez de `paused` — uma animação pausada continua
+   impondo o valor do frame corrente e ignoraria o opacity declarado. */
+.destacado .eco {
+    animation: none;
+    opacity: 1;
+    transform: scale(1);
+}
+
+.destacado .onda {
+    animation: none;
+    opacity: 0.55;
+    transform: scale(1.7);
+}
+
+/* ── Mostradores ─────────────────────────────────────────────────────── */
+
+.mostrador {
+    border-radius: 14px;
+    border: 1px solid rgba(125, 190, 220, 0.14);
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.03) 0%,
+            rgba(0, 0, 0, 0.25) 100%
+        ),
+        rgba(2, 12, 22, 0.7);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.agulha {
+    transform-origin: 50% 50%;
+    transition: transform 1000ms cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+@keyframes oscilar {
+    0%,
+    100% {
+        transform: scaleX(1);
+    }
+    50% {
+        transform: scaleX(0.97);
+    }
+}
+
+.barra {
+    transform-origin: left center;
+    animation: oscilar 4s ease-in-out infinite;
+}
+
+@keyframes piscar-led {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.35;
+    }
+}
+
+.led {
+    animation: piscar-led 2.4s ease-in-out infinite;
+}
+
+/* ── Vigia ────────────────────────────────────────────────────────────────
+   A janela para o mar, com o mostrador de profundidade como aro.
+
+   Tudo é função de `--calado` (0 na superfície, 1 na fossa), publicado por
+   `Mostradores` a cada quadro. A primeira versão movia uma coluna d'água
+   de 320% de altura atrás do vidro, e mirar a fatia certa dela virou
+   aritmética frágil — a janela abria no azul do meio, sem superfície à
+   vista. Agora a água preenche o vidro e quem se move é só o que precisa:
+   o céu sobe e some, e um véu escuro entra por cima. Menos exato como
+   simulação, muito mais previsível de acertar.                           */
+
+.vigia {
+    display: flex;
+    justify-content: center;
+    padding: 0.75rem;
+}
+
+.vigiaCorpo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+}
+
+.vigiaEscala {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* -130deg é o extremo do arco de 260°; somar `--calado * 260deg` leva a
+   agulha do repouso ao fundo da fossa sem nenhuma conta em JS. */
+.vigiaAgulha {
+    transform-origin: 50% 50%;
+    transform: rotate(calc(-130deg + var(--calado, 0) * 260deg));
+    filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.9));
+}
+
+.vigiaVidro {
+    position: absolute;
+    inset: 16%;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #04263f;
+    border: 2px solid rgba(150, 200, 226, 0.3);
+    box-shadow:
+        inset 0 0 20px rgba(0, 0, 0, 0.7),
+        inset 0 2px 5px rgba(255, 255, 255, 0.12),
+        0 0 0 5px rgba(4, 18, 30, 0.95),
+        0 0 0 6px rgba(140, 190, 215, 0.12),
+        0 4px 16px rgba(0, 0, 0, 0.55);
+}
+
+.vigiaAgua {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        #3a97c4 0%,
+        #14699b 30%,
+        #08496f 58%,
+        #052b48 82%,
+        #01162a 100%
+    );
+}
+
+/* O ar visto de baixo, e a linha d'água logo abaixo dele. Sobe e some
+   conforme se desce — é o que faz a descida ser algo que se VÊ acontecer,
+   e não apenas um número subindo. */
+.vigiaCeu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 34%;
+    background: linear-gradient(
+        to bottom,
+        rgba(232, 250, 255, 0.92) 0%,
+        rgba(190, 232, 250, 0.5) 55%,
+        rgba(150, 210, 236, 0) 100%
+    );
+    transform: translateY(calc(var(--calado, 0) * -300%));
+    opacity: clamp(0, calc(1 - var(--calado, 0) * 18), 1);
+}
+
+.vigiaOnda {
+    position: absolute;
+    left: -25%;
+    top: 27%;
+    width: 150%;
+    height: 9%;
+    background: radial-gradient(
+        ellipse at 50% 50%,
+        rgba(240, 253, 255, 0.85),
+        transparent 68%
+    );
+    transform: translateY(calc(var(--calado, 0) * -300%));
+    opacity: clamp(0, calc(1 - var(--calado, 0) * 18), 1);
+    animation: vigia-marulho 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes vigia-marulho {
+    from {
+        transform: translate3d(-3%, 10%, 0) scaleY(0.8);
+    }
+    to {
+        transform: translate3d(3%, -10%, 0) scaleY(1.2);
+    }
+}
+
+.vigiaRaios {
+    position: absolute;
+    inset: 22% -20% 0 -20%;
+    background: repeating-linear-gradient(
+        95deg,
+        rgba(205, 242, 255, 0) 0px,
+        rgba(205, 242, 255, 0) 11px,
+        rgba(205, 242, 255, 0.26) 21px,
+        rgba(205, 242, 255, 0) 34px,
+        rgba(205, 242, 255, 0) 56px
+    );
+    -webkit-mask-image: linear-gradient(to bottom, #000, transparent 60%);
+    mask-image: linear-gradient(to bottom, #000, transparent 60%);
+    opacity: clamp(0, calc(1 - var(--calado, 0) * 12), 1);
+    animation: vigia-deriva 13s ease-in-out infinite alternate;
+}
+
+@keyframes vigia-deriva {
+    from {
+        transform: translate3d(-4%, 0, 0);
+    }
+    to {
+        transform: translate3d(4%, 0, 0);
+    }
+}
+
+/* O véu que fecha a janela conforme se afunda. É o que sobrou de "mostrar
+   outra fatia do mar": mais barato e mais controlável que mover a coluna. */
+.vigiaEscuridao {
+    position: absolute;
+    inset: 0;
+    background: #01080f;
+    opacity: calc(var(--calado, 0) * 0.9);
+}
+
+/* A fauna cruza a JANELA, então não pertence à água nem ao céu: se
+   subisse junto com a superfície, sumiria no primeiro metro de descida. */
+.vigiaFauna {
+    position: absolute;
+    inset: 0;
+    color: rgba(1, 20, 36, 0.55);
+}
+
+.vigiaBicho {
+    position: absolute;
+    left: 0;
+    animation: vigia-travessia 17s linear infinite both;
+}
+
+.vigiaBichoVolta {
+    animation-duration: 26s;
+    animation-delay: -9s;
+    animation-direction: reverse;
+    --sentido-vigia: -1;
+}
+
+@keyframes vigia-travessia {
+    from {
+        transform: translate3d(-50%, 0, 0) scaleX(var(--sentido-vigia, 1));
+    }
+    to {
+        transform: translate3d(260%, 0, 0) scaleX(var(--sentido-vigia, 1));
+    }
+}
+
+.vigiaFloco {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: rgba(223, 243, 255, 0.7);
+    animation: vigia-suspensao ease-in-out infinite alternate;
+}
+
+@keyframes vigia-suspensao {
+    from {
+        transform: translate3d(-3px, -5px, 0);
+        opacity: 0.2;
+    }
+    to {
+        transform: translate3d(3px, 6px, 0);
+        opacity: 0.85;
+    }
+}
+
+/* Reflexo no acrílico. Fora de `.vigiaAgua` de propósito: o reflexo é do
+   vidro, e o vidro desce junto com a gente. */
+.vigiaBrilho {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            ellipse 55% 34% at 30% 14%,
+            rgba(255, 255, 255, 0.26),
+            transparent 72%
+        ),
+        radial-gradient(
+            ellipse 36% 20% at 76% 88%,
+            rgba(170, 226, 252, 0.12),
+            transparent 72%
+        );
+    pointer-events: none;
+}
+
+/* O parafuso em si é transparente: quem aparece é a sombra, deslocada do
+   centro e girada com o elemento. Um nó por parafuso, sem posicionamento. */
+.vigiaParafuso {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    margin: -2.5px 0 0 -2.5px;
+    border-radius: 50%;
+    transform-origin: 50% 50%;
+    box-shadow:
+        0 -62px 0 0 rgba(163, 208, 232, 0.45),
+        0 -62px 3px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Leitura numérica no terço inferior do mostrador, como em qualquer
+   profundímetro. Fica fora do vidro para não ser recortada pelo círculo
+   nem escurecida pelo véu de profundidade — o número precisa continuar
+   legível justamente quando a janela apaga. */
+.vigiaLeitura {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 6%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    pointer-events: none;
+    text-shadow: 0 1px 4px rgba(0, 6, 14, 0.95);
+}
+
+.vigiaMetros {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    color: #67e8f9;
+}
+
+.vigiaZona {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.18em;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+/* ── Mar de fundo ─────────────────────────────────────────────────────────
+   A água em volta do console. Fica atrás de tudo (z 0) e abaixo da vinheta
+   `.vidro` (z 41), que é quem garante que o miolo da tela continue escuro
+   o bastante para o console se destacar.                                  */
+
+.mar {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Luz da superfície entrando de cima. Um só elemento, mascarado em si
+   mesmo — mesma lição dos raios do portfólio: máscara no elemento animado
+   rasteriza uma vez; máscara no pai refaz a passagem a cada quadro. */
+.marLuz {
+    position: absolute;
+    top: -6%;
+    left: -7%;
+    width: 114%;
+    height: 70%;
+    background: repeating-linear-gradient(
+        93deg,
+        rgba(150, 220, 250, 0) 0px,
+        rgba(150, 220, 250, 0) 70px,
+        rgba(150, 220, 250, 0.07) 150px,
+        rgba(150, 220, 250, 0.095) 178px,
+        rgba(150, 220, 250, 0) 260px,
+        rgba(150, 220, 250, 0) 370px
+    );
+    -webkit-mask-image: linear-gradient(to bottom, #000 6%, transparent 82%);
+    mask-image: linear-gradient(to bottom, #000 6%, transparent 82%);
+    animation: mar-deriva 23s ease-in-out infinite alternate;
+}
+
+@keyframes mar-deriva {
+    from {
+        transform: translate3d(-3%, 0, 0) scaleX(1);
+    }
+    to {
+        transform: translate3d(3%, 0, 0) scaleX(1.06);
+    }
+}
+
+.marVultos {
+    position: absolute;
+    inset: 0;
+    color: #8fd4f0;
+}
+
+/* Opacidade no elemento, nunca alfa na cor: os paths de cada criatura se
+   sobrepõem, e alfa na cor faz as emendas somarem e virarem vincos. Mesma
+   armadilha que deformou a tartaruga na fauna do portfólio. */
+.marVulto {
+    position: absolute;
+    left: 0;
+    opacity: 0.085;
+    animation: mar-travessia 150s linear infinite both;
+}
+
+.marVultoVolta {
+    animation-duration: 110s;
+    animation-delay: -40s;
+    animation-direction: reverse;
+    opacity: 0.07;
+    --sentido-mar: -1;
+}
+
+@keyframes mar-travessia {
+    from {
+        transform: translate3d(-32vw, 0, 0) scaleX(var(--sentido-mar, 1));
+    }
+    to {
+        transform: translate3d(132vw, 0, 0) scaleX(var(--sentido-mar, 1));
+    }
+}
+
+.marParticulas {
+    position: absolute;
+    inset: 0;
+}
+
+.marFloco {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: #cfeaff;
+    animation: mar-afundar linear infinite both;
+}
+
+@keyframes mar-afundar {
+    0% {
+        transform: translate3d(0, -6vh, 0);
+        opacity: 0;
+    }
+    14%,
+    86% {
+        opacity: 0.4;
+    }
+    100% {
+        transform: translate3d(18px, 106vh, 0);
+        opacity: 0;
+    }
+}
+
+/* Caimento. Não é enfeite: a testa do cachalote é uma parede reta — é o
+   traço que o identifica — e ela entra em quadro antes do resto do corpo.
+   Alinhada aos eixos e a 8% de opacidade, essa parede lia como um
+   retângulo solto no canto da tela, que parecia defeito de layout. Uns
+   poucos graus bastam para ela voltar a ser um animal entrando de lado. */
+.marVulto > svg {
+    transform: rotate(-7deg);
+}
+
+.marVultoVolta > svg {
+    transform: rotate(5deg);
+}
