@@ -18,6 +18,16 @@ _Para aguentar a pressão e os tubarões da engenharia, escolha o melhor para me
 
 **Abyssal End** não é apenas um portfólio, é uma expedição. Inspirado na estética dos vídeos de "iceberg", a interface guia o usuário através das zonas oceânicas. A superfície apresenta o básico e visível; o abismo esconde a engenharia complexa, algoritmos e infraestrutura aprendidas ao longo da minha jornada.
 
+
+
+## Tecnologias usadas e Deploy
+
+**Claude** Usado em grande parte do código para modificações estéticas e de otimização
+**React** Usado graças a velocidade e facilidade de modularização de componentes
+**TailWindCSS** Usado para a estilização pela facilidade de manutenção
+
+Link de acesso ao deploy: https://bottomless-sea-two.vercel.app/
+
 ---
 
 ## 🗺️ Mapa de Profundidade (Estrutura)
