@@ -151,7 +151,7 @@ function Portfolio({
                     delay={atrasoCascata + 150}
                   />
                 </h2>
-                <p className="mb-10 mt-2 max-w-xl tenue">{meta.legenda}</p>
+                <p className="mb-10 mt-2 max-w-xl tenue"></p>
 
                 <Secao perfil={perfil} onAtivarAnomalia={ativarAnomalia} />
               </section>
